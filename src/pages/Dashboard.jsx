@@ -30,16 +30,16 @@ function Dashboard() {
 
         // Fetch recent formulas
         const formulasResponse = await formulaAPI.getFormulas();
-        const formulas = formulasResponse.data;
-        setRecentFormulas(formulas.slice(0, 5)); // Get top 5 recent formulas
-
-        // Get formula creation stats for chart data
-        const monthlyStats = formulas.reduce((acc, formula) => {
+        const formulas = Array.isArray(formulasResponse.data) ? formulasResponse.data : [];
+        const monthlyStats = formulas.length > 0 ? formulas.reduce((acc, formula) => {
           const date = new Date(formula.created_at);
           const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
           acc[monthYear] = (acc[monthYear] || 0) + 1;
           return acc;
-        }, {});
+        }, {}) : {};
+        
+        // And where you set recentFormulas
+        setRecentFormulas(formulas.slice(0, 5)); 
         
         // Convert to array format for charting
         const chartData = Object.entries(monthlyStats).map(([month, count]) => ({

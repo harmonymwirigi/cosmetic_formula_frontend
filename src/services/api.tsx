@@ -26,7 +26,8 @@ interface FormulaData {
 }
 
 // Use the correct backend URL - IMPORTANT: This must match your FastAPI server address
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 // Create API instance
 const api = axios.create({
@@ -34,7 +35,6 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  // Important: set this to true for credentials
   withCredentials: true,
 });
 

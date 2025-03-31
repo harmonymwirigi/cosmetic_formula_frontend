@@ -49,9 +49,16 @@ const FormulaCreation = () => {
           try {
             setLoadingRecentFormulas(true);
             const formulasResponse = await formulaAPI.getFormulas();
-            setRecentFormulas(formulasResponse.data.slice(0, 3));
+            // Add this defensive check
+            if (formulasResponse && formulasResponse.data && Array.isArray(formulasResponse.data)) {
+              setRecentFormulas(formulasResponse.data.slice(0, 3));
+            } else {
+              console.warn('Received invalid formulas data:', formulasResponse);
+              setRecentFormulas([]);
+            }
           } catch (error) {
             console.error('Failed to fetch recent formulas:', error);
+            setRecentFormulas([]);
           } finally {
             setLoadingRecentFormulas(false);
           }
@@ -248,14 +255,14 @@ const FormulaCreation = () => {
                         <h2 className="font-semibold text-gray-800 dark:text-gray-100">Recent Formulas</h2>
                       </div>
                       <div className="p-3">
-                        {loadingRecentFormulas ? (
-                          <div className="flex justify-center p-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-violet-500"></div>
-                          </div>
-                        ) : recentFormulas.length > 0 ? (
-                          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                            {recentFormulas.map((formula) => (
-                              <li key={formula.id} className="p-3 hover:bg-gray-50 dark:hover:bg-gray-750 rounded-md">
+                      {loadingRecentFormulas ? (
+                        <div className="flex justify-center p-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-violet-500"></div>
+                        </div>
+                      ) : Array.isArray(recentFormulas) && recentFormulas.length > 0 ? (
+                        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                          {recentFormulas.map((formula) => (
+                              <li key={formula.id || 'unknown'} className="p-3 hover:bg-gray-50 dark:hover:bg-gray-750 rounded-md">
                                 <div className="flex justify-between items-center">
                                   <div>
                                     <Link 

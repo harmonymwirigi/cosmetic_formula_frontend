@@ -33,7 +33,7 @@ function Signin() {
 
   const handleGoogleSignIn = () => {
     // Get the base URL from environment variables
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://cosmetic-formula-git-main-beautycraft.vercel.app/';
     
     // Redirect to backend Google OAuth endpoint
     // Include a redirect_uri to specify where to go after successful authentication
