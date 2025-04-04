@@ -25,8 +25,14 @@ function Signup() {
   };
 
   const handleGoogleSignUp = () => {
+    // Get the base URL from environment variables
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+    
     // Redirect to backend Google OAuth endpoint
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google/login`;
+    // Include a redirect_uri to specify where to go after successful authentication
+    const redirectUri = encodeURIComponent(window.location.origin + '/oauth/callback');
+    
+    window.location.href = `${API_BASE_URL.replace('/api', '')}/api/auth/google/login?redirect_uri=${redirectUri}`;
   };
 
   const handleSubmit = async (e) => {

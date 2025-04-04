@@ -31,17 +31,30 @@ function Signin() {
     }));
   };
 
-  const handleGoogleSignIn = () => {
-    // Get the base URL from environment variables
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://cosmetic-formula-git-main-beautycraft.vercel.app/';
-    
-    // Redirect to backend Google OAuth endpoint
-    // Include a redirect_uri to specify where to go after successful authentication
-    const redirectUri = encodeURIComponent(window.location.origin + '/oauth/callback');
-    
-    window.location.href = `${API_BASE_URL.replace('/api', '')}/api/auth/google/login?redirect_uri=${redirectUri}`;
-  };
-
+const handleGoogleSignIn = () => {
+  // Determine the current environment from the URL
+  const currentOrigin = window.location.origin; // Will be http://localhost:5173 in local dev
+  
+  // Get the base URL from environment variables, but ensure it doesn't end with /api
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
+  const baseUrl = API_BASE_URL.endsWith('/api') 
+    ? API_BASE_URL.substring(0, API_BASE_URL.length - 4) 
+    : API_BASE_URL;
+  
+  // Create the redirect URI using the current origin
+  const redirectUri = encodeURIComponent(`${currentOrigin}/oauth/callback`);
+  
+  // For debugging
+  console.log("Current origin:", currentOrigin);
+  console.log("API base URL:", baseUrl);
+  console.log("Redirect URI:", decodeURIComponent(redirectUri));
+  
+  // Construct the Google login URL
+  const googleLoginUrl = `${baseUrl}/api/auth/google/login?redirect_uri=${redirectUri}`;
+  
+  console.log("Redirecting to:", googleLoginUrl);
+  window.location.href = googleLoginUrl;
+};
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');

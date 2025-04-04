@@ -1,3 +1,5 @@
+//frontend.src.commponents.IngredientSelector.jsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useFormula } from '../../context/FormulaContext';
 import PropTypes from 'prop-types';

@@ -1,5 +1,3 @@
-// App.jsx
-
 import React, { useEffect } from 'react';
 import {
   Routes,
@@ -9,8 +7,13 @@ import {
 
 import './css/style.css';
 import FormulaCreation from './pages/FormulaCreation';
+import Formulas from './pages/Formulas';
+import FormulaDetail from './pages/FormulaDetail';
+import Ingredients from './pages/Ingredients';
+import Subscription from './pages/Subscription';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import { FormulaProvider } from './context/FormulaContext';
+
 // Import pages
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
@@ -77,7 +80,8 @@ import TooltipPage from './pages/component/TooltipPage';
 import AccordionPage from './pages/component/AccordionPage';
 import IconsPage from './pages/component/IconsPage';
 import OAuthCallback from './pages/Auth/OAuthCallback';
-
+import SubscriptionConfirm from './pages/SubscriptionConfirm';
+import SubscriptionCancel from './pages/SubscriptionCancel';
 function App() {
 
   const location = useLocation();
@@ -156,12 +160,26 @@ function App() {
         <Route path="/component/accordion" element={<AccordionPage />} />
         <Route path="/component/icons" element={<IconsPage />} />
         <Route path="/oauth/callback" element={<OAuthCallback />} />
+        <Route path="/subscription/cancel" element={<SubscriptionCancel />} />
+        {/* Cosmetic Formula Lab Routes */}
+        <Route path="/formulas/create" element={
+    <FormulaProvider>
+      <FormulaCreation />
+    </FormulaProvider>
+  } />
+  <Route path="/formulas" element={<Formulas />} />
+  <Route path="/formulas/:id" element={
+    <FormulaProvider>
+      <FormulaDetail />
+    </FormulaProvider>
+  } />
+  <Route path="/ingredients" element={<Ingredients />} />
+  <Route path="/subscription" element={<Subscription />} />
+  <Route path="/subscription/confirm" element={<SubscriptionConfirm />} />
+  <Route path="/subscription/cancel" element={<SubscriptionCancel />} />
+        
+        {/* Catch-all route for 404 */}
         <Route path="*" element={<PageNotFound />} />
-        <Route path="/formulas/create" element={<FormulaCreation />} />
-        {/* <Route path="/formulas" element={<Formulas />} />  You'll need to create this page */}
-        {/* <Route path="/formulas/:id" element={<FormulaDetail />} />  You'll need to create this page */}
-        {/* <Route path="/ingredients" element={<Ingredients />} />  You'll need to create this page */}
-        {/* <Route path="/subscription" element={<Subscription />} />  You'll need to create this page */}
       </Routes>
     </>
   );

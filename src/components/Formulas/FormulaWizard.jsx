@@ -1,3 +1,4 @@
+//frontend.src.commponents.FormulaWizard.jsx
 import React, { useState, useEffect } from 'react';
 import { useFormula } from '../../context/FormulaContext';
 import IngredientSelector from './IngredientSelector';
