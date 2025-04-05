@@ -70,7 +70,8 @@ export const authAPI = {
 
 // Payment API functions
 export const paymentsAPI = {
-  createCheckoutSession: (data: { subscription_type: string }) => {
+  createCheckoutSession: (data: { subscription_type: string, billing_cycle: string }) => {
+    console.log('Creating checkout session with data:', data);
     return api.post('/payments/create-checkout-session', data);
   },
   verifySession: (sessionId: string, subscriptionType?: string) => {
@@ -79,17 +80,12 @@ export const paymentsAPI = {
       subscription_type: subscriptionType || localStorage.getItem('selectedPlan') || 'premium'
     });
   },
-  createSubscription: (data: { plan: string, billing_cycle: string }) => {
-    console.log('Creating subscription with data:', data);
-    return api.post('/payments/create-subscription', data);
-  },
-  // Adding the confirmation and cancellation functions as well
-  confirmSubscription: (data: { plan: string, billing_cycle: string }) => {
-    return api.post('/payments/confirm-subscription', data);
-  },
   cancelSubscription: () => {
     return api.post('/payments/cancel-subscription');
   },
+  getSubscriptionStatus: () => {
+    return api.get('/payments/subscription-status');
+  }
 };
 // User API
 export const userAPI = {

@@ -108,39 +108,40 @@ function Subscription() {
   };
 
   // Handle subscription checkout
-  const handleCheckout = async () => {
-    if (!selectedPlan || selectedPlan === 'free') {
-      return;
-    }
+  // Handle subscription checkout
+const handleCheckout = async () => {
+  if (!selectedPlan || selectedPlan === 'free') {
+    return;
+  }
+  
+  setProcessingPayment(true);
+  setError(null);
+  
+  try {
+    // Store selected plan for later reference
+    localStorage.setItem('selectedPlan', selectedPlan);
+    localStorage.setItem('billingCycle', billingCycle);
     
-    if (selectedPlan === userData?.subscription_type) {
-      setShowConfirmationModal(true);
-      return;
-    }
+    // Call payment API to initiate checkout
+    const response = await paymentsAPI.createCheckoutSession({
+      subscription_type: selectedPlan,
+      billing_cycle: billingCycle
+    });
     
-    setProcessingPayment(true);
-    setError(null);
-    
-    try {
-      // Call payment API to initiate checkout
-      const response = await paymentsAPI.createSubscription({
-        plan: selectedPlan,
-        billing_cycle: billingCycle
-      });
-      
-      // Redirect to checkout URL from payment provider
-      if (response.data?.checkout_url) {
-        window.location.href = response.data.checkout_url;
-      } else {
-        throw new Error('No checkout URL returned');
-      }
-    } catch (error) {
-      console.error('Failed to initiate checkout:', error);
-      setError('Failed to initiate checkout. Please try again.');
-    } finally {
-      setProcessingPayment(false);
+    // Redirect to Stripe checkout URL
+    if (response.data?.checkout_url) {
+      console.log('Redirecting to checkout URL:', response.data.checkout_url);
+      window.location.href = response.data.checkout_url;
+    } else {
+      throw new Error('No checkout URL returned from the server');
     }
-  };
+  } catch (error) {
+    console.error('Failed to initiate checkout:', error);
+    setError('Failed to initiate checkout. Please try again.');
+  } finally {
+    setProcessingPayment(false);
+  }
+};
 
   // Handle subscription cancellation
   const handleCancelSubscription = async () => {

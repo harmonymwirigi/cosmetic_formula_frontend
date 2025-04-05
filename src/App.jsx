@@ -80,7 +80,7 @@ import TooltipPage from './pages/component/TooltipPage';
 import AccordionPage from './pages/component/AccordionPage';
 import IconsPage from './pages/component/IconsPage';
 import OAuthCallback from './pages/Auth/OAuthCallback';
-import SubscriptionConfirm from './pages/SubscriptionConfirm';
+import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import SubscriptionCancel from './pages/SubscriptionCancel';
 function App() {
 
@@ -175,8 +175,8 @@ function App() {
   } />
   <Route path="/ingredients" element={<Ingredients />} />
   <Route path="/subscription" element={<Subscription />} />
-  <Route path="/subscription/confirm" element={<SubscriptionConfirm />} />
-  <Route path="/subscription/cancel" element={<SubscriptionCancel />} />
+  <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+<Route path="/subscription/cancel" element={<SubscriptionCancel />} />
         
         {/* Catch-all route for 404 */}
         <Route path="*" element={<PageNotFound />} />

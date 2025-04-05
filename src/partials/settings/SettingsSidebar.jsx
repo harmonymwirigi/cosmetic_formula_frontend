@@ -1,72 +1,102 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
-function SettingsSidebar() {
-
+function SettingsSidebar({ currentPage }) {
   const location = useLocation();
   const { pathname } = location;
 
+  const isActive = (page) => {
+    return currentPage === page || pathname.includes(`/settings/${page}`);
+  };
+
   return (
-    <div className="flex flex-nowrap overflow-x-scroll no-scrollbar md:block md:overflow-auto px-3 py-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700/60 min-w-[15rem] md:space-y-3">
-      {/* Group 1 */}
-      <div>
-        <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase mb-3">Business settings</div>
-        <ul className="flex flex-nowrap md:block mr-3 md:mr-0">
-          <li className="mr-0.5 md:mr-0 md:mb-0.5">
-            <NavLink end to="/settings/account" className={`flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap ${pathname.includes('/settings/account') && 'bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'}`}>
-              <svg className={`shrink-0 fill-current mr-2 ${pathname.includes('/settings/account') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500'}`} width="16" height="16" viewBox="0 0 16 16">
-                <path d="M8 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-5.143 7.91a1 1 0 1 1-1.714-1.033A7.996 7.996 0 0 1 8 10a7.996 7.996 0 0 1 6.857 3.877 1 1 0 1 1-1.714 1.032A5.996 5.996 0 0 0 8 12a5.996 5.996 0 0 0-5.143 2.91Z" />
+    <div className="md:w-64 md:shrink-0 md:border-r border-gray-200 dark:border-gray-700 min-h-[80vh]">
+      <div className="sticky top-16">
+        <div className="py-6">
+          <div className="px-6 pb-5">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Settings</h2>
+          </div>
+          <div className="px-6 space-y-0.5">
+            <Link
+              to="/settings/account"
+              className={`flex items-center px-3 py-2 rounded mb-1 ${
+                isActive('account')
+                  ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <span className={`text-sm font-medium ${pathname.includes('/settings/account') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200'}`}>My Account</span>
-            </NavLink>
-          </li>
-          <li className="mr-0.5 md:mr-0 md:mb-0.5">
-            <NavLink end to="/settings/notifications" className={`flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap ${pathname.includes('/settings/notifications') && 'bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'}`}>
-              <svg className={`shrink-0 fill-current mr-2 ${pathname.includes('/settings/notifications') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500'}`} width="16" height="16" viewBox="0 0 16 16">
-                <path d="m9 12.614 4.806 1.374a.15.15 0 0 0 .174-.21L8.133 2.082a.15.15 0 0 0-.268 0L2.02 13.777a.149.149 0 0 0 .174.21L7 12.614V9a1 1 0 1 1 2 0v3.614Zm-1 1.794-5.257 1.503c-1.798.514-3.35-1.355-2.513-3.028L6.076 1.188c.791-1.584 3.052-1.584 3.845 0l5.848 11.695c.836 1.672-.714 3.54-2.512 3.028L8 14.408Z" />
+              <span className="text-sm font-medium">Account</span>
+            </Link>
+            <Link
+              to="/settings/notifications"
+              className={`flex items-center px-3 py-2 rounded mb-1 ${
+                isActive('notifications')
+                  ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
-              <span className={`text-sm font-medium ${pathname.includes('/settings/notifications') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200'}`}>My Notifications</span>
-            </NavLink>
-          </li>
-          <li className="mr-0.5 md:mr-0 md:mb-0.5">
-            <NavLink end to="/settings/apps" className={`flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap ${pathname.includes('/settings/apps') && 'bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'}`}>
-              <svg className={`shrink-0 fill-current mr-2 ${pathname.includes('/settings/apps') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500'}`} width="16" height="16" viewBox="0 0 16 16">
-                <path d="M8 3.414V6a1 1 0 1 1-2 0V1a1 1 0 0 1 1-1h5a1 1 0 0 1 0 2H9.414l6.293 6.293a1 1 0 1 1-1.414 1.414L8 3.414Zm0 9.172V10a1 1 0 1 1 2 0v5a1 1 0 0 1-1 1H4a1 1 0 0 1 0-2h2.586L.293 7.707a1 1 0 0 1 1.414-1.414L8 12.586Z" />
+              <span className="text-sm font-medium">Notifications</span>
+            </Link>
+            <Link
+              to="/settings/plans"
+              className={`flex items-center px-3 py-2 rounded mb-1 ${
+                isActive('plans')
+                  ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
-              <span className={`text-sm font-medium ${pathname.includes('/settings/apps') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200'}`}>Connected Apps</span>
-            </NavLink>
-          </li>
-          <li className="mr-0.5 md:mr-0 md:mb-0.5">
-            <NavLink end to="/settings/plans" className={`flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap ${pathname.includes('/settings/plans') && 'bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'}`}>
-              <svg className={`shrink-0 fill-current mr-2 ${pathname.includes('/settings/plans') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500'}`} width="16" height="16" viewBox="0 0 16 16">
-                <path d="M5 9a1 1 0 1 1 0-2h6a1 1 0 0 1 0 2H5ZM1 4a1 1 0 1 1 0-2h14a1 1 0 0 1 0 2H1Zm0 10a1 1 0 0 1 0-2h14a1 1 0 0 1 0 2H1Z" />
+              <span className="text-sm font-medium">Subscription Plans</span>
+            </Link>
+            <Link
+              to="/settings/billing"
+              className={`flex items-center px-3 py-2 rounded mb-1 ${
+                isActive('billing')
+                  ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
               </svg>
-              <span className={`text-sm font-medium ${pathname.includes('/settings/plans') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200'}`}>Plans</span>
-            </NavLink>
-          </li>
-          <li className="mr-0.5 md:mr-0 md:mb-0.5">
-            <NavLink end to="/settings/billing" className={`flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap ${pathname.includes('/settings/billing') && 'bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'}`}>
-              <svg className={`shrink-0 fill-current mr-2 ${pathname.includes('/settings/billing') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500'}`} width="16" height="16" viewBox="0 0 16 16">
-                <path d="M0 4a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4Zm2 0v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Zm9 1a1 1 0 0 1 0 2H5a1 1 0 1 1 0-2h6Zm0 4a1 1 0 0 1 0 2H5a1 1 0 1 1 0-2h6Z" />
+              <span className="text-sm font-medium">Billing</span>
+            </Link>
+            <Link
+              to="/settings/apps"
+              className={`flex items-center px-3 py-2 rounded mb-1 ${
+                isActive('apps')
+                  ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
               </svg>
-              <span className={`text-sm font-medium ${pathname.includes('/settings/billing') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200'}`}>Billing & Invoices</span>
-            </NavLink>
-          </li>
-        </ul>
-      </div>
-      {/* Group 2 */}
-      <div>
-        <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase mb-3">Experience</div>
-        <ul className="flex flex-nowrap md:block mr-3 md:mr-0">
-          <li className="mr-0.5 md:mr-0 md:mb-0.5">
-            <NavLink end to="/settings/feedback" className={`flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap ${pathname.includes('/settings/feedback') && 'bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'}`}>
-              <svg className={`shrink-0 fill-current mr-2 ${pathname.includes('/settings/feedback') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500'}`} width="16" height="16" viewBox="0 0 16 16">
-                <path d="M14.3.3c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4l-8 8c-.2.2-.4.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l8-8zM15 7c.6 0 1 .4 1 1 0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8c.6 0 1 .4 1 1s-.4 1-1 1C4.7 2 2 4.7 2 8s2.7 6 6 6 6-2.7 6-6c0-.6.4-1 1-1z" />
+              <span className="text-sm font-medium">Integrations</span>
+            </Link>
+            <Link
+              to="/settings/feedback"
+              className={`flex items-center px-3 py-2 rounded mb-1 ${
+                isActive('feedback')
+                  ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
               </svg>
-              <span className={`text-sm font-medium ${pathname.includes('/settings/feedback') ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200'}`}>Give Feedback</span>
-            </NavLink>
-          </li>
-        </ul>
+              <span className="text-sm font-medium">Feedback</span>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
