@@ -1,3 +1,4 @@
+// src/services/api.tsx
 import axios from 'axios';
 
 // Define interface types for API parameters
@@ -139,7 +140,92 @@ export const aiFormulaAPI = {
   },
 };
 
-// Ingredients API
+// Add to src/services/api.ts
+
+// Knowledge Base API functions
+export const knowledgeAPI = {
+  getCategories: async (params = {}) => {
+    return api.get('/knowledge/categories', { params });
+  },
+  getArticles: async (params = {}) => {
+    return api.get('/knowledge/articles', { params });
+  },
+  getArticle: async (slug) => {
+    return api.get(`/knowledge/articles/${slug}`);
+  },
+  createArticle: async (data) => {
+    return api.post('/knowledge/articles', data);
+  },
+  updateArticle: async (id, data) => {
+    return api.put(`/knowledge/articles/${id}`, data);
+  },
+  deleteArticle: async (id) => {
+    return api.delete(`/knowledge/articles/${id}`);
+  },
+  getTutorials: async (params = {}) => {
+    return api.get('/knowledge/tutorials', { params });
+  },
+  getTutorial: async (id) => {
+    return api.get(`/knowledge/tutorials/${id}`);
+  },
+  updateTutorialProgress: async (tutorialId, data) => {
+    return api.post(`/knowledge/tutorials/${tutorialId}/progress`, data);
+  }
+};
+// Add to src/services/api.ts
+
+// Shop API functions
+export const shopAPI = {
+  // Product endpoints
+  getProducts: async (params = {}) => {
+    return api.get('/shop/products', { params });
+  },
+  getProduct: async (slug) => {
+    return api.get(`/shop/products/${slug}`);
+  },
+  getProductCategories: async (params = {}) => {
+    return api.get('/shop/categories', { params });
+  },
+  
+  // Cart endpoints
+  getCart: async () => {
+    return api.get('/shop/cart');
+  },
+  addToCart: async (data) => {
+    return api.post('/shop/cart/items', data);
+  },
+  updateCartItem: async (itemId, data) => {
+    return api.put(`/shop/cart/items/${itemId}`, data);
+  },
+  removeFromCart: async (itemId) => {
+    return api.delete(`/shop/cart/items/${itemId}`);
+  },
+  
+  // Order endpoints
+  createOrder: async (shippingAddressId, paymentMethod, notes = '') => {
+    return api.post('/shop/orders', { shipping_address_id: shippingAddressId, payment_method: paymentMethod, notes });
+  },
+  getOrders: async (params = {}) => {
+    return api.get('/shop/orders', { params });
+  },
+  getOrder: async (orderId) => {
+    return api.get(`/shop/orders/${orderId}`);
+  },
+  
+  // Shipping address endpoints
+  getShippingAddresses: async () => {
+    return api.get('/shop/shipping-addresses');
+  },
+  createShippingAddress: async (data) => {
+    return api.post('/shop/shipping-addresses', data);
+  },
+  updateShippingAddress: async (addressId, data) => {
+    return api.put(`/shop/shipping-addresses/${addressId}`, data);
+  },
+  deleteShippingAddress: async (addressId) => {
+    return api.delete(`/shop/shipping-addresses/${addressId}`);
+  }
+};
 // Updated ingredientAPI in api.ts
 export const ingredientAPI = {
   getIngredients: async (params = {}) => {
@@ -174,6 +260,48 @@ export const ingredientAPI = {
     }
   },
 };
+
+export const notificationAPI = {
+  // Check your frontend API service
+getUserNotifications: async (skip = 0, limit = 100, unreadOnly = false) => {
+  try {
+    // Make sure the URL matches exactly - note the trailing slash!
+    const response = await api.get('/api/notifications/', {
+      params: {
+        skip,
+        limit,
+        unread_only: unreadOnly
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    // Return empty array to prevent UI errors
+    return [];
+  }
+},
+  
+  markAsRead: async (notificationId: number) => {
+    return api.post(`/notifications/${notificationId}/read`);
+  },
+  
+  markAllAsRead: async () => {
+    return api.post('/notifications/read-all');
+  },
+  
+  deleteNotification: async (notificationId: number) => {
+    return api.delete(`/notifications/${notificationId}`);
+  },
+  
+  getNotificationPreferences: async () => {
+    return api.get('/notifications/preferences');
+  },
+  
+  updateNotificationPreferences: async (notificationType: string, preferences: any) => {
+    return api.put(`/notifications/preferences/${notificationType}`, preferences);
+  }
+};
+
 export default {
   auth: authAPI,
   user: userAPI,
@@ -181,4 +309,7 @@ export default {
   formula: formulaAPI,
   aiFormula: aiFormulaAPI,
   ingredient: ingredientAPI,
+  knowledge: knowledgeAPI,
+  shop: shopAPI,
+  notification: notificationAPI,
 };

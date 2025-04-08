@@ -1,7 +1,10 @@
+// Updated Header.jsx with notification context
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useNotifications } from '../context/NotificationContext';
 import SearchModal from '../components/ModalSearch';
 import ThemeToggle from '../components/ThemeToggle';
+import { format, formatDistanceToNow } from 'date-fns';
 
 function Header({
   sidebarOpen,
@@ -17,6 +20,16 @@ function Header({
   
   // Load user data from localStorage if not provided via props
   const userDataFromStorage = userData || JSON.parse(localStorage.getItem('user') || '{}');
+
+  // Get notifications from context
+  const { notifications, unreadCount, markAsRead, refreshNotifications } = useNotifications();
+
+  // When notifications dropdown is opened, refresh notifications
+  useEffect(() => {
+    if (notificationsOpen) {
+      refreshNotifications();
+    }
+  }, [notificationsOpen, refreshNotifications]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -37,9 +50,6 @@ function Header({
     document.addEventListener('click', clickHandler);
     return () => document.removeEventListener('click', clickHandler);
   });
-  
-  // Get notification count for badge
-  const unreadNotifications = 3; // This would typically come from your API
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -61,33 +71,38 @@ function Header({
 
   const userSubscriptionBg = getSubscriptionBackground(userDataFromStorage?.subscription_type);
 
-  // Mock notifications data
-  const notifications = [
-    {
-      id: 1, 
-      type: 'info',
-      title: 'New ingredient available',
-      description: 'Sodium Hyaluronate has been added to our ingredient database',
-      time: '2 hours ago', 
-      read: false
-    },
-    {
-      id: 2, 
-      type: 'success',
-      title: 'Formula saved',
-      description: 'Your "Hydrating Serum" formula was successfully saved',
-      time: '3 hours ago', 
-      read: false
-    },
-    {
-      id: 3, 
-      type: 'update',
-      title: 'Subscription active',
-      description: 'Your Premium subscription is now active',
-      time: '1 day ago', 
-      read: true
-    },
-  ];
+  // Get notification icon based on type
+  const getNotificationIcon = (type) => {
+    switch(type) {
+      case 'system':
+        return (
+          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+        );
+      case 'formula':
+        return (
+          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+        );
+      case 'subscription':
+        return (
+          <div className="w-2 h-2 rounded-full bg-violet-500"></div>
+        );
+      default:
+        return (
+          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+        );
+    }
+  };
+
+  // Format notification time
+  const formatNotificationTime = (timestamp) => {
+    const date = new Date(timestamp);
+    // If less than 1 day ago, show relative time
+    if (Date.now() - date.getTime() < 86400000) {
+      return formatDistanceToNow(date, { addSuffix: true });
+    }
+    // Otherwise show formatted date
+    return format(date, 'MMM d, yyyy');
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -116,17 +131,6 @@ function Header({
                 <path d="M16.5 2h-9a.5.5 0 0 0-.5.5V7c0 .22.037.431.107.631L11 16v5a1 1 0 0 0 1 1h.5a1 1 0 0 0 1-1v-5l3.893-8.369c.07-.2.107-.411.107-.631V2.5a.5.5 0 0 0-.5-.5zm-4 2v2h-1V4h1zm-3 0h1v2h-1V4zm6 2.5c0 .06-.01.119-.029.174L12 15.201V21h-.5v-5.799l-3.471-8.527A.498.498 0 0 1 8 6.5V4h1v2.5a.5.5 0 0 0 1 0V4h1v2.5a.5.5 0 0 0 1 0V4h1v2.5a.5.5 0 0 0 1 0V4h1v2.5z"/>
               </svg>
             </div>
-
-            {/* Breadcrumbs (can be added if needed) */}
-            {/* <div className="hidden lg:flex ml-3">
-              <nav className="text-sm" aria-label="Breadcrumb">
-                <ol className="flex items-center space-x-2">
-                  <li><Link to="/" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">Dashboard</Link></li>
-                  <li className="text-gray-400 dark:text-gray-600">/</li>
-                  <li className="text-gray-800 dark:text-gray-200 font-medium">Current Page</li>
-                </ol>
-              </nav>
-            </div> */}
           </div>
 
           {/* Right side */}
@@ -171,7 +175,7 @@ function Header({
                 <svg className="w-4 h-4 fill-current text-gray-500 dark:text-gray-400" viewBox="0 0 16 16">
                   <path d="M6.5 0C2.91 0 0 2.91 0 6.5S2.91 13 6.5 13c1.41 0 2.73-.45 3.8-1.2l4.7 4.7 1.4-1.4-4.7-4.7c.75-1.07 1.2-2.39 1.2-3.8C13 2.91 10.09 0 6.5 0zM6.5 2C8.99 2 11 4.01 11 6.5S8.99 11 6.5 11 2 8.99 2 6.5 4.01 2 6.5 2z" />
                 </svg>
-                {unreadNotifications > 0 && (
+                {unreadCount > 0 && (
                   <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-rose-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
                 )}
               </button>
@@ -184,31 +188,48 @@ function Header({
               >
                 <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase pt-1.5 pb-2 px-4 border-b border-gray-200 dark:border-gray-700">Notifications</div>
                 <ul>
-                  {notifications.map(item => (
-                    <li key={item.id} className="border-b border-gray-200 dark:border-gray-700 last:border-0">
-                      <div className={`block py-2 px-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 ${item.read ? '' : 'bg-violet-50 dark:bg-violet-900/20'}`}>
-                        <div className="flex items-center">
-                          {/* Colored dot for notification type */}
-                          <div className="relative mr-2">
-                            <div className={`w-2 h-2 rounded-full ${
-                              item.type === 'info' 
-                                ? 'bg-blue-500' 
-                                : item.type === 'success'
-                                ? 'bg-green-500'  
-                                : 'bg-violet-500'
-                            }`}></div>
-                          </div>
+                  {notifications.length > 0 ? (
+                    notifications.map(item => (
+                      <li key={item.id} className="border-b border-gray-200 dark:border-gray-700 last:border-0">
+                        <div className={`block py-2 px-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 ${item.is_read ? '' : 'bg-violet-50 dark:bg-violet-900/20'}`}>
+                          <div className="flex items-center">
+                            {/* Colored dot for notification type */}
+                            <div className="relative mr-2">
+                              {getNotificationIcon(item.notification_type)}
+                            </div>
 
-                          {/* Notification content */}
-                          <div className="grow">
-                            <div className="font-semibold text-gray-800 dark:text-gray-100 mb-0.5">{item.title}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{item.description}</div>
-                            <div className="text-xs font-medium text-gray-400 dark:text-gray-500">{item.time}</div>
+                            {/* Notification content */}
+                            <div className="grow">
+                              <div className="font-semibold text-gray-800 dark:text-gray-100 mb-0.5">{item.title}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{item.message}</div>
+                              <div className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                                {formatNotificationTime(item.created_at)}
+                              </div>
+                            </div>
+                            
+                            {/* Mark as read button */}
+                            {!item.is_read && (
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  markAsRead(item.id);
+                                }}
+                                className="ml-2 text-xs text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
+                              >
+                                <svg className="w-4 h-4 fill-current" viewBox="0 0 16 16">
+                                  <path d="M14.3 2.3L5 11.6 1.7 8.3c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4l4 4c.2.2.4.3.7.3.3 0 .5-.1.7-.3l10-10c.4-.4.4-1 0-1.4-.4-.4-1-.4-1.4 0z"/>
+                                </svg>
+                              </button>
+                            )}
                           </div>
                         </div>
-                      </div>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="py-4 px-4 text-center text-gray-500 dark:text-gray-400">
+                      No new notifications
                     </li>
-                  ))}
+                  )}
                 </ul>
                 <div className="text-center border-t border-gray-200 dark:border-gray-700 px-4 py-2">
                   <Link to="/notifications" className="text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" onClick={() => setNotificationsOpen(false)}>

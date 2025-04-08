@@ -13,6 +13,7 @@ import Ingredients from './pages/Ingredients';
 import Subscription from './pages/Subscription';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import { FormulaProvider } from './context/FormulaContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 // Import pages
 import Dashboard from './pages/Dashboard';
@@ -21,7 +22,7 @@ import Fintech from './pages/Fintech';
 import Customers from './pages/ecommerce/Customers';
 import Orders from './pages/ecommerce/Orders';
 import Invoices from './pages/ecommerce/Invoices';
-import Shop from './pages/ecommerce/Shop';
+//import Shop from './pages/ecommerce/Shop';
 import Shop2 from './pages/ecommerce/Shop2';
 import Product from './pages/ecommerce/Product';
 import Cart from './pages/ecommerce/Cart';
@@ -82,6 +83,18 @@ import IconsPage from './pages/component/IconsPage';
 import OAuthCallback from './pages/Auth/OAuthCallback';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import SubscriptionCancel from './pages/SubscriptionCancel';
+// Import Knowledge Hub pages
+import KnowledgeHub from './pages/knowledge/KnowledgeHub';
+import ArticleView from './pages/knowledge/ArticleView';
+import TutorialView from './pages/knowledge/TutorialView';
+import CategoryView from './pages/knowledge/CategoryView';
+
+// Import Shop pages
+import Shop from './pages/shop/Shop';
+import ShoppingCart from './pages/shop/ShoppingCart';
+import ProductView from './pages/shop/ProductView';
+import OrderConfirmation from './pages/shop/OrderConfirmation';
+import OrderHistory from './pages/shop/OrderHistory';
 function App() {
 
   const location = useLocation();
@@ -94,8 +107,21 @@ function App() {
 
   return (
     <>
+    <NotificationProvider>
       <Routes>
         <Route exact path="/" element={<Dashboard />} />
+        <Route path="/notifications" element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        } />
+        
+        {/* Update the settings/notifications route */}
+        <Route path="/settings/notifications" element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        } />
         <Route path="/dashboard/analytics" element={<Analytics />} />
         <Route path="/dashboard/fintech" element={<Fintech />} />
         <Route path="/ecommerce/customers" element={<Customers />} />
@@ -161,6 +187,19 @@ function App() {
         <Route path="/component/icons" element={<IconsPage />} />
         <Route path="/oauth/callback" element={<OAuthCallback />} />
         <Route path="/subscription/cancel" element={<SubscriptionCancel />} />
+        {/* Knowledge Hub Routes */}
+        <Route path="/knowledge" element={<KnowledgeHub />} />
+        <Route path="/knowledge/articles/:slug" element={<ArticleView />} />
+        <Route path="/knowledge/tutorials/:id" element={<TutorialView />} />
+        <Route path="/knowledge/categories/:slug" element={<CategoryView />} />
+        <Route path="/knowledge/search" element={<KnowledgeHub />} />
+
+        {/* Shop Routes */}
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/shop/products/:slug" element={<ProductView />} />
+        <Route path="/shop/cart" element={<ShoppingCart />} />
+        <Route path="/shop/orders/:id/confirmation" element={<OrderConfirmation />} />
+        <Route path="/shop/orders" element={<OrderHistory />} />
         {/* Cosmetic Formula Lab Routes */}
         <Route path="/formulas/create" element={
     <FormulaProvider>
@@ -181,6 +220,7 @@ function App() {
         {/* Catch-all route for 404 */}
         <Route path="*" element={<PageNotFound />} />
       </Routes>
+      </NotificationProvider>
     </>
   );
 }

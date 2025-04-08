@@ -1,3 +1,4 @@
+// frontend/src/Notification.jsx
 import React from 'react';
 
 function Notification({

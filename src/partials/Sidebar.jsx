@@ -298,26 +298,60 @@ function Sidebar({
           )}
           
           {/* Knowledge Base */}
-          <NavLink
-            to="/knowledge-base"
-            className={({ isActive }) => 
-              `flex items-center p-2 rounded-lg group ${
-                isActive
-                  ? `bg-gray-100 dark:bg-gray-700/70 ${primaryColor}` 
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
-              }`
-            }
-          >
-            <svg className="shrink-0 h-6 w-6" viewBox="0 0 24 24">
-              <path 
-                className={`fill-current ${pathname === '/knowledge-base' ? primaryColor : 'text-gray-400'}`}
-                d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"
-              />
-            </svg>
-            <span className="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
-              Knowledge Base
-            </span>
-          </NavLink>
+<NavLink
+  to="/knowledge"
+  className={({ isActive }) => 
+    `flex items-center p-2 rounded-lg group ${
+      isActive || pathname.includes('/knowledge')
+        ? `bg-gray-100 dark:bg-gray-700/70 ${primaryColor}` 
+        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+    }`
+  }
+>
+  <svg className="shrink-0 h-6 w-6" viewBox="0 0 24 24">
+    <path 
+      className={`fill-current ${pathname.includes('/knowledge') ? primaryColor : 'text-gray-400'}`}
+      d="M19.714 14.7l-7.007 7.007-1.414-1.414 7.007-7.007c-.195-.4-.298-.84-.3-1.286a3 3 0 113 3 2.969 2.969 0 01-1.286-.3z"
+    />
+    <path
+      className={`fill-current ${pathname.includes('/knowledge') ? 'text-slate-400 dark:text-slate-300' : 'text-gray-400'}`}
+      d="M10.714 18.3c.4-.195.84-.298 1.286-.3a3 3 0 11-3 3c.002-.446.105-.885.3-1.286l-6.007-6.007 1.414-1.414 6.007 6.007z"
+    />
+    <path
+      className={`fill-current ${pathname.includes('/knowledge') ? primaryColor : 'text-gray-400'}`}
+      d="M5.7 10.714c.195.4.298.84.3 1.286a3 3 0 11-3-3c.446.002.885.105 1.286.3l7.007-7.007 1.414 1.414L5.7 10.714z"
+    />
+    <path
+      className={`fill-current ${pathname.includes('/knowledge') ? 'text-slate-400 dark:text-slate-300' : 'text-gray-400'}`}
+      d="M19.707 9.292a3.012 3.012 0 00-1.415 1.415L13.286 5.7c-.4.195-.84.298-1.286.3a3 3 0 113-3 2.969 2.969 0 01-.3 1.286l5.007 5.006z"
+    />
+  </svg>
+  <span className="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+    Knowledge Hub
+  </span>
+</NavLink>
+
+{/* Shop */}
+<NavLink
+  to="/shop"
+  className={({ isActive }) => 
+    `flex items-center p-2 rounded-lg group ${
+      isActive || pathname.includes('/shop')
+        ? `bg-gray-100 dark:bg-gray-700/70 ${primaryColor}` 
+        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+    }`
+  }
+>
+  <svg className="shrink-0 h-6 w-6" viewBox="0 0 24 24">
+    <path 
+      className={`fill-current ${pathname.includes('/shop') ? primaryColor : 'text-gray-400'}`}
+      d="M20 7a2 2 0 00-2-2h-2V4c0-1.103-.897-2-2-2h-4c-1.103 0-2 .897-2 2v1H6a2 2 0 00-2 2v11a2 2 0 002 2h12a2 2 0 002-2V7zm-6-3v1h-4V4h4zm-6 7h4v2H8v-2zm8 0h-2v2h2v-2zm-8-2h8v.5H8V9zm0 6h8v.5H8v-.5z"
+    />
+  </svg>
+  <span className="text-sm font-medium ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+    Shop
+  </span>
+</NavLink>
         </div>
 
         {/* Settings Section */}
