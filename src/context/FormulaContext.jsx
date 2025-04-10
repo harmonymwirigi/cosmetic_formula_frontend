@@ -490,50 +490,55 @@ export const FormulaProvider = ({ children }) => {
     }
   };
   
-  const saveFormula = async () => {
-    dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'formulaSaving', value: true } });
-    dispatch({ type: actionTypes.SET_ERROR, payload: { key: 'formulaSaving', value: null } });
+  
+
+const saveFormula = async () => {
+  dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'formulaSaving', value: true } });
+  dispatch({ type: actionTypes.SET_ERROR, payload: { key: 'formulaSaving', value: null } });
+  
+  try {
+    // Format the formula data for API
+    const formulaData = {
+      ...state.currentFormula,
+      ingredients: state.currentFormula.ingredients.map(ing => ({
+        ingredient_id: ing.ingredient_id,
+        percentage: parseFloat(ing.percentage || 0), // Handle undefined
+        order: ing.order || 0 // Handle undefined
+      })),
+      steps: state.currentFormula.steps.map(step => ({
+        description: step.description,
+        order: step.order || 0 // Handle undefined
+      }))
+    };
     
-    try {
-      let response;
-      
-      // Format the formula data for API
-      const formulaData = {
-        ...state.currentFormula,
-        ingredients: state.currentFormula.ingredients.map(ing => ({
-          ingredient_id: ing.ingredient_id,
-          percentage: parseFloat(ing.percentage),
-          order: ing.order
-        })),
-        steps: state.currentFormula.steps.map(step => ({
-          description: step.description,
-          order: step.order
-        }))
-      };
-      
-      response = await formulaAPI.createFormula(formulaData);
-      
-      // Update saved formulas list
-      await fetchSavedFormulas();
-      
-      // Clear draft formula from localStorage
-      localStorage.removeItem('formulaDraft');
-      
-      // Reset form dirty state
-      dispatch({ type: actionTypes.SET_WIZARD_DIRTY, payload: false });
-      
-      return response.data;
-    } catch (error) {
-      console.error('Error saving formula:', error);
-      dispatch({
-        type: actionTypes.SET_ERROR,
-        payload: { key: 'formulaSaving', value: error.response?.data?.detail || 'Failed to save formula' }
-      });
-      throw error;
-    } finally {
-      dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'formulaSaving', value: false } });
-    }
-  };
+    // Log the data being sent for debugging
+    console.log('Saving formula data:', formulaData);
+    
+    // Set a timeout to avoid hanging forever
+    const response = await Promise.race([
+      formulaAPI.createFormula(formulaData),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), 30000))
+    ]);
+    
+    // Clear draft formula from localStorage
+    localStorage.removeItem('formulaDraft');
+    
+    // Reset form dirty state
+    dispatch({ type: actionTypes.SET_WIZARD_DIRTY, payload: false });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error saving formula:', error);
+    const errorMessage = error.response?.data?.detail || 'Failed to save formula';
+    dispatch({
+      type: actionTypes.SET_ERROR, 
+      payload: { key: 'formulaSaving', value: errorMessage }
+    });
+    throw error;
+  } finally {
+    dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'formulaSaving', value: false } });
+  }
+};
   
   // Provide value to consumers
   const contextValue = {

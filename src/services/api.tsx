@@ -122,25 +122,36 @@ export const formulaAPI = {
   updateFormula: (id: number, data: FormulaData) => {
     return api.put(`/formulas/${id}`, data);
   },
-  deleteFormula: (id: number) => {
-    return api.delete(`/formulas/${id}`);
+  deleteFormula: async (id) => {
+    try {
+      console.log(`Deleting formula with ID: ${id}`);
+      return await api.delete(`/formulas/${id}`);
+    } catch (error) {
+      console.error('Error deleting formula:', error);
+      throw error;
+    }
   },
 };
 
 // AI Formula API
 export const aiFormulaAPI = {
-  generateFormula: (data: any) => { // Using 'any' here since AI data can vary
-    return api.post('/ai-formula/generate_formula', data);
+  generateFormula: (data) => {
+    // Convert nested product_type object to flat structure if needed
+    const requestData = { ...data };
+    
+    // Log the request for debugging
+    console.log("AI Formula request data:", requestData);
+    
+    // Make the request
+    return api.post('/ai-formula/generate_formula', requestData);
   },
-  analyzeIngredients: (data: any) => {
+  analyzeIngredients: (data) => {
     return api.post('/ai-formula/analyze', data);
   },
-  checkIngredientCompatibility: (ingredientIds: number[]) => {
+  checkIngredientCompatibility: (ingredientIds) => {
     return api.post('/ai-formula/check-compatibility', { ingredient_ids: ingredientIds });
   },
 };
-
-// Add to src/services/api.ts
 
 // Knowledge Base API functions
 export const knowledgeAPI = {
@@ -260,7 +271,14 @@ export const ingredientAPI = {
     }
   },
 };
-
+export const userProfileAPI = {
+  getUserProfile: () => {
+    return api.get('/user/profile');
+  },
+  updateUserProfile: (profileData) => {
+    return api.post('/user/profile', profileData);
+  }
+};
 export const notificationAPI = {
   // Check your frontend API service
 getUserNotifications: async (skip = 0, limit = 100, unreadOnly = false) => {
@@ -312,4 +330,5 @@ export default {
   knowledge: knowledgeAPI,
   shop: shopAPI,
   notification: notificationAPI,
+  userProfile: userProfileAPI,
 };

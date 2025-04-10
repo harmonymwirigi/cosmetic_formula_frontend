@@ -9,6 +9,7 @@ function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [recentFormulas, setRecentFormulas] = useState([]);
+  const [formulas, setFormulas] = useState([]); 
   const [ingredientStats, setIngredientStats] = useState({ total: 0, premium: 0, professional: 0 });
   const [loading, setLoading] = useState(true);
   const [formulaChartData, setFormulaChartData] = useState([]);
@@ -19,18 +20,45 @@ function Dashboard() {
       try {
         // Retrieve user data from localStorage first for quick rendering
         const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUserData(JSON.parse(storedUser));
-        }
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        console.log("Stored user data:", parsedUser);
+        setUserData(parsedUser);
+      }
 
-        // Fetch latest user status from backend
-        const userResponse = await userAPI.getUserStatus();
-        setUserData(userResponse.data);
-        localStorage.setItem('user', JSON.stringify(userResponse.data));
+      // Fetch latest user status from backend
+      // After setting userData from getUserStatus
+const userResponse = await userAPI.getUserStatus();
+setUserData(userResponse.data);
+localStorage.setItem('user', JSON.stringify(userResponse.data));
+
+// If we don't have a first name, get full user details
+if (!userResponse.data.first_name) {
+  try {
+    const fullUserResponse = await authAPI.getCurrentUser();
+    if (fullUserResponse.data) {
+      // Merge the data
+      const mergedUserData = { 
+        ...userResponse.data, 
+        ...fullUserResponse.data 
+      };
+      setUserData(mergedUserData);
+      localStorage.setItem('user', JSON.stringify(mergedUserData));
+    }
+  } catch (error) {
+    console.error('Failed to fetch full user details:', error);
+  }
+};
 
         // Fetch recent formulas
         const formulasResponse = await formulaAPI.getFormulas();
         const formulas = Array.isArray(formulasResponse.data) ? formulasResponse.data : [];
+                
+        // Set all formulas
+        setFormulas(formulas);
+                
+        // Set recent formulas (just the first 5)
+        setRecentFormulas(formulas.slice(0, 5));
         const monthlyStats = formulas.length > 0 ? formulas.reduce((acc, formula) => {
           const date = new Date(formula.created_at);
           const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
@@ -39,7 +67,15 @@ function Dashboard() {
         }, {}) : {};
         
         // And where you set recentFormulas
-        setRecentFormulas(formulas.slice(0, 5)); 
+        // Make sure we have complete formula data with ingredients
+        const recentFormulasWithDetails = formulas.slice(0, 5).map(formula => {
+          // If formula has no ingredients array or it's empty, set it to an empty array
+          return {
+            ...formula,
+            ingredients: formula.ingredients || []
+          };
+        });
+        setRecentFormulas(recentFormulasWithDetails);
         
         // Convert to array format for charting
         const chartData = Object.entries(monthlyStats).map(([month, count]) => ({
@@ -129,7 +165,7 @@ function Dashboard() {
               {/* Left: Title */}
               <div className="mb-4 sm:mb-0">
                 <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
-                  Welcome, {userData?.first_name || 'User'}
+                Welcome, {userData?.first_name || userData?.email?.split('@')[0] || 'User'}
                 </h1>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Subscription: <span className="capitalize font-medium">{userData?.subscription_type || 'Free'} Plan</span>
@@ -166,25 +202,25 @@ function Dashboard() {
       <div className="flex items-end justify-between">
         <div>
           <div className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-            {recentFormulas.length}
+            {formulas.length}
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
             Total formulas created
           </div>
         </div>
         <div className={`text-sm font-medium ${
-          currentPlan === 'free' && recentFormulas.length >= 3 
+          currentPlan === 'free' && formulas.length >= 3 
             ? 'text-amber-600 dark:text-amber-400' 
             : 'text-green-600 dark:text-green-400'
         }`}>
-          {currentPlan === 'free' ? `${recentFormulas.length}/3` : 'Unlimited'}
+          {currentPlan === 'free' ? `${formulas.length}/3` : 'Unlimited'}
         </div>
       </div>
     </div>
     <div 
       className="w-full h-1 bg-violet-500" 
       style={{ 
-        width: currentPlan === 'free' ? `${(recentFormulas.length / 3) * 100}%` : '100%',
+        width: currentPlan === 'free' ? `${(formulas.length / 3) * 100}%` : '100%',
         minWidth: '5%' 
       }}
     ></div>
@@ -306,7 +342,13 @@ function Dashboard() {
                                 </div>
                               </td>
                               <td className="p-2 whitespace-nowrap">
-                                <div className="text-left">{formula.ingredients?.length || 0}</div>
+                                <div className="text-left">
+                                  {typeof formula.ingredients === 'number' 
+                                    ? formula.ingredients 
+                                    : (Array.isArray(formula.ingredients) 
+                                      ? formula.ingredients.length 
+                                      : 0)}
+                                </div>
                               </td>
                               <td className="p-2 whitespace-nowrap">
                                 <div className="flex justify-center space-x-2">

@@ -1,3 +1,4 @@
+//frontend/src/pages/settings/Account.jsx
 import React, { useState, useEffect } from 'react';
 import { userAPI } from '../../services/api';
 import Sidebar from '../../partials/Sidebar';

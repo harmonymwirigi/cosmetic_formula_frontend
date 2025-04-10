@@ -14,8 +14,7 @@ import Subscription from './pages/Subscription';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import { FormulaProvider } from './context/FormulaContext';
 import { NotificationProvider } from './context/NotificationContext';
-
-// Import pages
+import UserProfileForm  from './components/Profile/UserProfileForm';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Fintech from './pages/Fintech';
@@ -149,6 +148,7 @@ function App() {
         <Route path="/job/job-listing" element={<JobListing />} />
         <Route path="/job/job-post" element={<JobPost />} />
         <Route path="/job/company-profile" element={<CompanyProfile />} />
+        <Route path="/profile/edit" element={<UserProfileForm />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/tasks/kanban" element={<TasksKanban />} />
         <Route path="/tasks/list" element={<TasksList />} />

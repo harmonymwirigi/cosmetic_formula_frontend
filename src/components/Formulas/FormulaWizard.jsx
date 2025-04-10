@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFormula } from '../../context/FormulaContext';
 import IngredientSelector from './IngredientSelector';
-import FormulaRecommendation from '../AI/FormulaRecommendation';
+import EnhancedFormulaRecommendation from '../AI/EnhancedFormulaRecommendation';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -297,7 +297,7 @@ const FormulaWizard = () => {
               </div>
             </div>
             
-            <FormulaRecommendation />
+            <EnhancedFormulaRecommendation />
             
             <div className="mt-6 text-center">
               <button

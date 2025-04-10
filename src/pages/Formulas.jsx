@@ -98,17 +98,29 @@ function Formulas() {
     if (!formulaToDelete) return;
     
     try {
+      setLoading(true);
+      console.log('Deleting formula:', formulaToDelete.id);
+      
+      // Call the delete API
       await formulaAPI.deleteFormula(formulaToDelete.id);
       
-      // Remove from state
+      // Update the formulas state (remove the deleted formula)
       const updatedFormulas = formulas.filter(f => f.id !== formulaToDelete.id);
       setFormulas(updatedFormulas);
+      setFilteredFormulas(updatedFormulas);
       
-      // Close modal
+      // Close the modal and reset
       setShowDeleteModal(false);
       setFormulaToDelete(null);
+      
+      // Show success message
+      alert('Formula deleted successfully');
+      
     } catch (error) {
       console.error('Failed to delete formula:', error);
+      alert(`Failed to delete formula: ${error.response?.data?.detail || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -296,13 +308,18 @@ function Formulas() {
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Ingredients</span>
                             <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                              {formula.ingredients ? formula.ingredients.length : 0}
+                            {typeof formula.ingredients === 'number' 
+                            ? formula.ingredients 
+                            : (Array.isArray(formula.ingredients) 
+                              ? formula.ingredients.length 
+                              : 0)}
+
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Weight</span>
                             <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                              {formula.total_weight}g
+                              {formula.total_weight ? `${formula.total_weight}g` : '100g'}
                             </span>
                           </div>
                         </div>
