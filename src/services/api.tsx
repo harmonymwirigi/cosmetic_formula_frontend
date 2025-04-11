@@ -186,56 +186,34 @@ export const knowledgeAPI = {
 // Add to src/services/api.ts
 
 // Shop API functions
+
+// Shop API endpoints
 export const shopAPI = {
-  // Product endpoints
-  getProducts: async (params = {}) => {
-    return api.get('/shop/products', { params });
-  },
-  getProduct: async (slug) => {
-    return api.get(`/shop/products/${slug}`);
-  },
-  getProductCategories: async (params = {}) => {
-    return api.get('/shop/categories', { params });
-  },
+  // Products
+  getProducts: (params) => api.get('/shop/products', { params }),
+  getProduct: (slug) => api.get(`/shop/products/${slug}`),
+  getProductCategories: (params) => api.get('/shop/categories', { params }),
   
-  // Cart endpoints
-  getCart: async () => {
-    return api.get('/shop/cart');
-  },
-  addToCart: async (data) => {
-    return api.post('/shop/cart/items', data);
-  },
-  updateCartItem: async (itemId, data) => {
-    return api.put(`/shop/cart/items/${itemId}`, data);
-  },
-  removeFromCart: async (itemId) => {
-    return api.delete(`/shop/cart/items/${itemId}`);
-  },
+  // Shopping Cart
+  getCart: () => api.get('/shop/cart'),
+  addToCart: (productData) => api.post('/shop/cart/items', productData),
+  updateCartItem: (itemId, updateData) => api.put(`/shop/cart/items/${itemId}`, updateData),
+  removeFromCart: (itemId) => api.delete(`/shop/cart/items/${itemId}`),
   
-  // Order endpoints
-  createOrder: async (shippingAddressId, paymentMethod, notes = '') => {
-    return api.post('/shop/orders', { shipping_address_id: shippingAddressId, payment_method: paymentMethod, notes });
-  },
-  getOrders: async (params = {}) => {
-    return api.get('/shop/orders', { params });
-  },
-  getOrder: async (orderId) => {
-    return api.get(`/shop/orders/${orderId}`);
-  },
+  // Orders
+  createOrder: (shippingAddressId, paymentMethod, notes) => 
+    api.post('/shop/orders', { shipping_address_id: shippingAddressId, payment_method: paymentMethod, notes }),
+  getOrders: (params) => api.get('/shop/orders', { params }),
+  getOrder: (orderId) => api.get(`/shop/orders/${orderId}`),
   
-  // Shipping address endpoints
-  getShippingAddresses: async () => {
-    return api.get('/shop/shipping-addresses');
-  },
-  createShippingAddress: async (data) => {
-    return api.post('/shop/shipping-addresses', data);
-  },
-  updateShippingAddress: async (addressId, data) => {
-    return api.put(`/shop/shipping-addresses/${addressId}`, data);
-  },
-  deleteShippingAddress: async (addressId) => {
-    return api.delete(`/shop/shipping-addresses/${addressId}`);
-  }
+  // Shipping Addresses
+  getShippingAddresses: () => api.get('/shop/shipping-addresses'),
+  createShippingAddress: (addressData) => api.post('/shop/shipping-addresses', addressData),
+  updateShippingAddress: (addressId, addressData) => api.put(`/shop/shipping-addresses/${addressId}`, addressData),
+  deleteShippingAddress: (addressId) => api.delete(`/shop/shipping-addresses/${addressId}`),
+  
+  // Payment integration
+  createStripeCheckoutSession: (orderId) => api.post(`/payments/create-checkout-session/${orderId}`),
 };
 // Updated ingredientAPI in api.ts
 export const ingredientAPI = {
@@ -279,12 +257,13 @@ export const userProfileAPI = {
     return api.post('/user/profile', profileData);
   }
 };
+
 export const notificationAPI = {
   // Check your frontend API service
 getUserNotifications: async (skip = 0, limit = 100, unreadOnly = false) => {
   try {
     // Make sure the URL matches exactly - note the trailing slash!
-    const response = await api.get('/api/notifications/', {
+    const response = await api.get('/notifications/', {
       params: {
         skip,
         limit,

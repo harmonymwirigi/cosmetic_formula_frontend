@@ -34,7 +34,6 @@ interface AuthContextType {
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
 }
-
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
@@ -46,66 +45,90 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const useAuth = () => useContext(AuthContext);
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const authCheckInProgress = useRef(false);
   
-  // Get the API base URL from environment variables
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
   
   // Check if user is already logged in on mount
   useEffect(() => {
     const checkAuth = async () => {
-      // Prevent multiple simultaneous auth checks
-      if (authCheckInProgress.current) return;
-      authCheckInProgress.current = true;
-      
-      setIsLoading(true);
-      const token = localStorage.getItem('token');
-      const savedUserString = localStorage.getItem('user');
-      
-      if (token && savedUserString) {
-        try {
-          // First try to use the saved user data
-          const savedUser = JSON.parse(savedUserString);
-          setUser(savedUser);
-          setIsAuthenticated(true);
-          
-          // Then refresh user data from API if possible
-          console.log("Found token, getting fresh user data");
-          const response = await axios.get(`${API_BASE_URL}/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-          
-          if (response.data) {
-            console.log("Fresh user data:", response.data);
-            setUser(response.data);
-            localStorage.setItem('user', JSON.stringify(response.data));
-          }
-        } catch (error) {
-          console.error('Error fetching current user:', error);
-          // On API error, don't log the user out, but log the error
-        }
-      } else {
-        // No token or user in localStorage
-        setUser(null);
-        setIsAuthenticated(false);
+      if (authCheckInProgress.current) {
+        console.log("Auth check already in progress, skipping");
+        return;
       }
       
-      setIsLoading(false);
-      authCheckInProgress.current = false;
+      authCheckInProgress.current = true;
+      setIsLoading(true);
+      
+      try {
+        const token = localStorage.getItem('token');
+        const savedUserString = localStorage.getItem('user');
+        
+        if (!token) {
+          // No token = not authenticated
+          console.log("No token found, user is not authenticated");
+          setUser(null);
+          setIsAuthenticated(false);
+          setIsLoading(false);
+          authCheckInProgress.current = false;
+          return;
+        }
+        
+        // Set initial state from localStorage if available
+        if (savedUserString) {
+          try {
+            const savedUser = JSON.parse(savedUserString);
+            setUser(savedUser);
+            setIsAuthenticated(true);
+            console.log("Restored user from localStorage:", savedUser);
+          } catch (parseError) {
+            console.error('Error parsing saved user data:', parseError);
+            localStorage.removeItem('user'); // Remove corrupted data
+          }
+        }
+        
+        // Then validate token with server
+        console.log("Validating token with server...");
+        const response = await axios.get(`${API_BASE_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.data) {
+          console.log("Token validation successful, user data:", response.data);
+          setUser(response.data);
+          setIsAuthenticated(true);
+          localStorage.setItem('user', JSON.stringify(response.data));
+        } else {
+          console.warn("Token validation returned no data");
+          setIsAuthenticated(false);
+        }
+      } catch (error: any) {
+        console.error('Auth check error:', error?.response?.status, error?.message);
+        
+        // Clear auth state on 401 Unauthorized or other critical errors
+        if (error?.response?.status === 401) {
+          console.log("Token invalid, clearing auth state");
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } finally {
+        setIsLoading(false);
+        authCheckInProgress.current = false;
+      }
     };
     
     checkAuth();
   }, [API_BASE_URL]); // Only re-run when API_BASE_URL changes
   
   // Login function
-  const login = (userData: any, token: string) => {
+   const login = (userData: any, token: string) => {
+    console.log("Login called with user:", userData?.id || userData?.email || "unknown");
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);

@@ -1,4 +1,4 @@
-//frontend.src.commponents.FormulaWizard.jsx
+// frontend/src/components/FormulaWizard.jsx
 import React, { useState, useEffect } from 'react';
 import { useFormula } from '../../context/FormulaContext';
 import IngredientSelector from './IngredientSelector';
@@ -45,63 +45,85 @@ const FormulaWizard = () => {
     { name: 'Review & Save', description: 'Review the complete formula' }
   ];
 
+
   // Validate form at current step
   const validateCurrentStep = () => {
     const errors = {};
 
-    switch (wizard.currentStep) {
-      case 0: // Basic Details
-        if (!currentFormula.name) errors.name = 'Formula name is required';
-        if (!currentFormula.type) errors.type = 'Formula type is required';
-        break;
-      case 2: // Ingredients
-        if (currentFormula.ingredients.length === 0) {
-          errors.ingredients = 'At least one ingredient is required';
-        }
-        
-        const totalPercentage = currentFormula.ingredients.reduce(
-          (sum, ingredient) => sum + parseFloat(ingredient.percentage || 0), 
-          0
-        );
-        
-        if (Math.abs(totalPercentage - 100) > 0.1) {
-          errors.totalPercentage = `Total percentage is ${totalPercentage.toFixed(1)}%, but should be 100%`;
-        }
-        break;
-      case 3: // Manufacturing Steps
-        if (currentFormula.steps.length === 0) {
-          errors.steps = 'At least one manufacturing step is required';
-        }
-        break;
-      default:
-        break;
+    try {
+      switch (wizard.currentStep) {
+        case 0: // Basic Details
+          if (!currentFormula.name) errors.name = 'Formula name is required';
+          if (!currentFormula.type) errors.type = 'Formula type is required';
+          break;
+        case 2: // Ingredients
+          if (!currentFormula.ingredients || currentFormula.ingredients.length === 0) {
+            errors.ingredients = 'At least one ingredient is required';
+          } else {
+            const totalPercentage = currentFormula.ingredients.reduce(
+              (sum, ingredient) => sum + parseFloat(ingredient.percentage || 0), 
+              0
+            );
+            
+            if (Math.abs(totalPercentage - 100) > 0.1) {
+              errors.totalPercentage = `Total percentage is ${totalPercentage.toFixed(1)}%, but should be 100%`;
+            }
+          }
+          break;
+        case 3: // Manufacturing Steps
+          if (!currentFormula.steps || currentFormula.steps.length === 0) {
+            errors.steps = 'At least one manufacturing step is required';
+          }
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error('Validation error:', error);
+      errors.general = 'An error occurred during validation';
     }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  // Navigate to next step
+  // Navigate to next step with error handling
   const handleNext = () => {
-    if (validateCurrentStep()) {
-      setWizardStep(wizard.currentStep + 1);
+    try {
+      if (validateCurrentStep()) {
+        // Make sure we don't exceed the number of steps
+        const nextStep = Math.min(wizard.currentStep + 1, steps.length - 1);
+        setWizardStep(nextStep);
+      }
+    } catch (error) {
+      console.error('Error navigating to next step:', error);
+      setValidationErrors({ general: 'An error occurred while navigating to the next step' });
     }
   };
 
-  // Navigate to previous step
+  // Navigate to previous step with error handling
   const handlePrevious = () => {
-    setWizardStep(wizard.currentStep - 1);
+    try {
+      // Make sure we don't go below 0
+      const prevStep = Math.max(wizard.currentStep - 1, 0);
+      setWizardStep(prevStep);
+    } catch (error) {
+      console.error('Error navigating to previous step:', error);
+    }
   };
 
   // Add a new manufacturing step
   const handleAddStep = () => {
     if (!newStepDescription.trim()) return;
 
-    addFormulaStep({
-      description: newStepDescription
-    });
-
-    setNewStepDescription('');
+    try {
+      addFormulaStep({
+        description: newStepDescription
+      });
+      setNewStepDescription('');
+    } catch (error) {
+      console.error('Error adding step:', error);
+    }
   };
 
   // Save the formula
@@ -114,6 +136,7 @@ const FormulaWizard = () => {
       navigate(`/formulas/${savedFormula.id}`);
     } catch (error) {
       console.error('Error saving formula:', error);
+      setValidationErrors({ general: 'Failed to save formula. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -138,7 +161,7 @@ const FormulaWizard = () => {
               : currentFormula.name || 'Untitled Formula'}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {steps[wizard.currentStep].description}
+            {steps[wizard.currentStep]?.description || 'Formula Creation Wizard'}
           </p>
         </div>
         <div className="px-5 py-3 bg-gray-50 dark:bg-gray-750 flex">
@@ -185,6 +208,13 @@ const FormulaWizard = () => {
         </div>
       </div>
 
+      {/* Global error handler */}
+      {validationErrors.general && (
+        <div className="m-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+          <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.general}</p>
+        </div>
+      )}
+
       {/* Step content */}
       <div className="p-5">
         {/* Step 1: Basic Details */}
@@ -200,7 +230,7 @@ const FormulaWizard = () => {
                   validationErrors.name ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
                 placeholder="Enter a name for your formula"
-                value={currentFormula.name}
+                value={currentFormula.name || ''}
                 onChange={(e) => updateFormulaField('name', e.target.value)}
               />
               {validationErrors.name && (
@@ -216,7 +246,7 @@ const FormulaWizard = () => {
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
                   validationErrors.type ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
-                value={currentFormula.type}
+                value={currentFormula.type || ''}
                 onChange={(e) => updateFormulaField('type', e.target.value)}
               >
                 <option value="">Select a formula type</option>
@@ -240,7 +270,7 @@ const FormulaWizard = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 placeholder="Enter a description for your formula"
                 rows="4"
-                value={currentFormula.description}
+                value={currentFormula.description || ''}
                 onChange={(e) => updateFormulaField('description', e.target.value)}
               ></textarea>
             </div>
@@ -250,7 +280,7 @@ const FormulaWizard = () => {
                 <input
                   type="checkbox"
                   className="h-4 w-4 text-violet-600 focus:ring-violet-500 border-gray-300 rounded dark:border-gray-600 dark:bg-gray-700"
-                  checked={currentFormula.is_public}
+                  checked={currentFormula.is_public || false}
                   onChange={(e) => updateFormulaField('is_public', e.target.checked)}
                 />
                 <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
@@ -267,7 +297,7 @@ const FormulaWizard = () => {
                 type="number"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 placeholder="100.0"
-                value={currentFormula.total_weight}
+                value={currentFormula.total_weight || 100.0}
                 onChange={(e) => updateFormulaField('total_weight', parseFloat(e.target.value) || 100.0)}
                 min="1"
                 step="0.1"
@@ -297,7 +327,9 @@ const FormulaWizard = () => {
               </div>
             </div>
             
-            <EnhancedFormulaRecommendation />
+            <EnhancedFormulaRecommendation 
+              userType={(currentFormula?.subscription_type) || "premium"} 
+            />
             
             <div className="mt-6 text-center">
               <button
@@ -305,7 +337,7 @@ const FormulaWizard = () => {
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none"
                 onClick={handleNext}
               >
-                {currentFormula.ingredients.length > 0 
+                {currentFormula.ingredients && currentFormula.ingredients.length > 0 
                   ? 'Continue with AI Recommendation' 
                   : 'Skip AI Recommendation'}
               </button>
@@ -344,7 +376,7 @@ const FormulaWizard = () => {
               </p>
               
               {/* List existing steps */}
-              {currentFormula.steps.length > 0 ? (
+              {currentFormula.steps && currentFormula.steps.length > 0 ? (
                 <div className="space-y-3 mb-4">
                   {currentFormula.steps
                     .sort((a, b) => a.order - b.order)
@@ -448,11 +480,11 @@ const FormulaWizard = () => {
                     <div className="space-y-3">
                       <div>
                         <span className="text-sm text-gray-500 dark:text-gray-400">Name:</span>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{currentFormula.name}</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{currentFormula.name || 'Untitled'}</p>
                       </div>
                       <div>
                         <span className="text-sm text-gray-500 dark:text-gray-400">Type:</span>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{currentFormula.type}</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{currentFormula.type || 'Not specified'}</p>
                       </div>
                       <div>
                         <span className="text-sm text-gray-500 dark:text-gray-400">Visibility:</span>
@@ -463,7 +495,7 @@ const FormulaWizard = () => {
                       <div>
                         <span className="text-sm text-gray-500 dark:text-gray-400">Total Weight:</span>
                         <p className="font-medium text-gray-900 dark:text-gray-100">
-                          {currentFormula.total_weight}g
+                          {currentFormula.total_weight || 100}g
                         </p>
                       </div>
                       {currentFormula.description && (
@@ -477,7 +509,7 @@ const FormulaWizard = () => {
                   
                   <div>
                     <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Ingredients</h4>
-                    {currentFormula.ingredients.length > 0 ? (
+                    {currentFormula.ingredients && currentFormula.ingredients.length > 0 ? (
                       <div className="overflow-auto max-h-40">
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                           <thead>
@@ -508,7 +540,7 @@ const FormulaWizard = () => {
                 
                 <div className="mt-6">
                   <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Manufacturing Steps</h4>
-                  {currentFormula.steps.length > 0 ? (
+                  {currentFormula.steps && currentFormula.steps.length > 0 ? (
                     <ol className="list-decimal list-inside space-y-2 pl-4">
                       {currentFormula.steps
                         .sort((a, b) => a.order - b.order)
@@ -525,7 +557,7 @@ const FormulaWizard = () => {
               </div>
             </div>
             
-            {errors.formulaSaving && (
+            {errors && errors.formulaSaving && (
               <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
                 <p className="text-sm text-red-700 dark:text-red-400">{errors.formulaSaving}</p>
               </div>
@@ -599,58 +631,59 @@ const FormulaWizard = () => {
               )}
             </button>
           )}
+          </div>
         </div>
-      </div>
-      
-      {/* Confirm Reset Modal */}
-      {showConfirmReset && (
-        <div className="fixed inset-0 overflow-y-auto z-50">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
-            </div>
-            <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
-                    <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
-                      Reset Formula
-                    </h3>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Are you sure you want to reset this formula? All changes will be lost and cannot be recovered.
-                      </p>
+        
+        {/* Confirm Reset Modal */}
+        {showConfirmReset && (
+          <div className="fixed inset-0 overflow-y-auto z-50">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
+              <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div className="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+              </div>
+              <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div className="sm:flex sm:items-start">
+                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                      <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
+                        Reset Formula
+                      </h3>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Are you sure you want to reset this formula? All changes will be lost and cannot be recovered.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button 
-                  type="button" 
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
-                  onClick={handleResetFormula}
-                >
-                  Reset
-                </button>
-                <button 
-                  type="button" 
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-650 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  onClick={() => setShowConfirmReset(false)}
-                >
-                  Cancel
-                </button>
+                <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button 
+                    type="button" 
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                    onClick={handleResetFormula}
+                  >
+                    Reset
+                  </button>
+                  <button 
+                    type="button" 
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-650 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    onClick={() => setShowConfirmReset(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
+        )}
+      </div>
+    );
+  };
+  
+  
 export default FormulaWizard;

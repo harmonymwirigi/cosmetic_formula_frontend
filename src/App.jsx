@@ -21,6 +21,7 @@ import Fintech from './pages/Fintech';
 import Customers from './pages/ecommerce/Customers';
 import Orders from './pages/ecommerce/Orders';
 import Invoices from './pages/ecommerce/Invoices';
+import { UserProfileProvider } from './context/UserProfileContext';
 //import Shop from './pages/ecommerce/Shop';
 import Shop2 from './pages/ecommerce/Shop2';
 import Product from './pages/ecommerce/Product';
@@ -107,6 +108,7 @@ function App() {
   return (
     <>
     <NotificationProvider>
+      <UserProfileProvider>
       <Routes>
         <Route exact path="/" element={<Dashboard />} />
         <Route path="/notifications" element={
@@ -220,6 +222,7 @@ function App() {
         {/* Catch-all route for 404 */}
         <Route path="*" element={<PageNotFound />} />
       </Routes>
+      </UserProfileProvider>
       </NotificationProvider>
     </>
   );

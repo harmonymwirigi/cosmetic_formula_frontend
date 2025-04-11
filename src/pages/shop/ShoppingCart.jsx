@@ -1,13 +1,16 @@
-// src/pages/shop/ShoppingCart.jsx
+//src/pages/shop/ShoppingCart.jsx
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../../partials/Header';
 import Sidebar from '../../partials/Sidebar';
 import { userAPI, shopAPI } from '../../services/api';
 import ProtectedRoute from '../../components/shared/ProtectedRoute';
+import AddressModal from '../../components/shop/AddressModal';
+import { toast } from 'react-toastify';
 
 function ShoppingCart() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [cart, setCart] = useState(null);
@@ -19,6 +22,16 @@ function ShoppingCart() {
   const [orderNotes, setOrderNotes] = useState('');
   const [checkoutStep, setCheckoutStep] = useState(1);
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+
+  // Check for canceled payment
+  useEffect(() => {
+    // Check if the URL has a canceled query parameter
+    const params = new URLSearchParams(location.search);
+    if (params.get('canceled')) {
+      toast.error('Payment was canceled. Your order has not been processed.');
+    }
+  }, [location]);
 
   // Fetch cart and user data
   useEffect(() => {
@@ -70,7 +83,7 @@ function ShoppingCart() {
       setCart(cartResponse.data);
     } catch (error) {
       console.error('Failed to update quantity:', error);
-      alert(error.response?.data?.detail || 'Failed to update quantity');
+      toast.error(error.response?.data?.detail || 'Failed to update quantity');
     }
   };
 
@@ -84,7 +97,7 @@ function ShoppingCart() {
       setCart(cartResponse.data);
     } catch (error) {
       console.error('Failed to remove item:', error);
-      alert(error.response?.data?.detail || 'Failed to remove item from cart');
+      toast.error(error.response?.data?.detail || 'Failed to remove item from cart');
     }
   };
 
@@ -92,7 +105,7 @@ function ShoppingCart() {
   const handleProceedToCheckout = () => {
     // Validate cart has items
     if (!cart || cart.items.length === 0) {
-      alert('Your cart is empty');
+      toast.error('Your cart is empty');
       return;
     }
     
@@ -104,7 +117,7 @@ function ShoppingCart() {
   const handleProceedToPayment = () => {
     // Validate shipping address is selected
     if (!selectedAddressId) {
-      alert('Please select a shipping address');
+      toast.error('Please select a shipping address');
       return;
     }
     
@@ -112,29 +125,60 @@ function ShoppingCart() {
     setCheckoutStep(3);
   };
 
-  // Place order
+  // Handle new address added
+  const handleAddressAdded = (newAddress) => {
+    setShippingAddresses([...shippingAddresses, newAddress]);
+    setSelectedAddressId(newAddress.id);
+    
+    // If it's a default address, update other addresses
+    if (newAddress.is_default) {
+      setShippingAddresses(prev => 
+        prev.map(addr => 
+          addr.id !== newAddress.id ? { ...addr, is_default: false } : addr
+        )
+      );
+    }
+  };
+
+  // Place order and process payment
   const handlePlaceOrder = async () => {
     // Validate payment method is selected
     if (!paymentMethod) {
-      alert('Please select a payment method');
+      toast.error('Please select a payment method');
+      return;
+    }
+    
+    // Validate shipping address is selected
+    if (!selectedAddressId) {
+      toast.error('Please select a shipping address');
       return;
     }
     
     setIsProcessingOrder(true);
     
     try {
-      // Create order
+      // Create order first
       const orderResponse = await shopAPI.createOrder(
         selectedAddressId,
         paymentMethod,
         orderNotes
       );
       
-      // Redirect to order confirmation
-      navigate(`/shop/orders/${orderResponse.data.id}/confirmation`);
+      // Now create a Stripe checkout session for the order
+      try {
+        // Call the API to create a checkout session
+        const checkoutResponse = await shopAPI.createStripeCheckoutSession(orderResponse.data.id);
+        
+        // Redirect to the Stripe checkout page
+        window.location.href = checkoutResponse.data.checkout_url;
+      } catch (error) {
+        console.error('Failed to create checkout session:', error);
+        // Redirect to order confirmation page even if Stripe checkout fails (for demo purposes)
+        navigate(`/shop/orders/${orderResponse.data.id}/confirmation`);
+      }
     } catch (error) {
       console.error('Failed to place order:', error);
-      alert(error.response?.data?.detail || 'Failed to place order');
+      toast.error(error.response?.data?.detail || 'Failed to place order');
       setIsProcessingOrder(false);
     }
   };
@@ -387,7 +431,7 @@ function ShoppingCart() {
                                  <label htmlFor={`address-${address.id}`} className="font-medium text-gray-700 dark:text-gray-300">
                                    {address.first_name} {address.last_name}
                                    {address.is_default && (
-                                     <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200">
+                                     <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
                                        Default
                                      </span>
                                    )}
@@ -409,14 +453,14 @@ function ShoppingCart() {
                          ))}
                          
                          <div className="mt-4 flex justify-between">
-                           <Link 
-                             to="/account/addresses/new?redirect=cart" 
+                           <button
+                             onClick={() => setShowAddressModal(true)}
                              className="text-sm text-violet-600 dark:text-violet-400 hover:underline"
                            >
                              Add new address
-                           </Link>
+                           </button>
                            <Link 
-                             to="/account/addresses" 
+                             to="/settings/addresses" 
                              className="text-sm text-violet-600 dark:text-violet-400 hover:underline"
                            >
                              Manage addresses
@@ -434,12 +478,12 @@ function ShoppingCart() {
                            Add a shipping address to continue checkout.
                          </p>
                          <div className="mt-6">
-                           <Link
-                             to="/account/addresses/new?redirect=cart"
+                           <button
+                             onClick={() => setShowAddressModal(true)}
                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none"
                            >
-                             Add Address
-                           </Link>
+                             Add New Address
+                           </button>
                          </div>
                        </div>
                      )}
@@ -587,55 +631,17 @@ function ShoppingCart() {
                            </div>
                          </div>
                          
-                         {/* Credit card details form (would normally use Stripe Elements) */}
+                         {/* Credit card details form (will redirect to Stripe) */}
                          {paymentMethod === 'credit_card' && (
-                           <div className="mt-4 grid grid-cols-6 gap-4">
-                             <div className="col-span-6">
-                               <label htmlFor="card-number" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                 Card number
-                               </label>
-                               <input
-                                 type="text"
-                                 id="card-number"
-                                 placeholder="•••• •••• •••• ••••"
-                                 className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white sm:text-sm"
-                               />
-                             </div>
-                             
-                             <div className="col-span-4">
-                               <label htmlFor="card-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                 Cardholder name
-                               </label>
-                               <input
-                                 type="text"
-                                 id="card-name"
-                                 placeholder="Jane Smith"
-                                 className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white sm:text-sm"
-                               />
-                             </div>
-                             
-                             <div className="col-span-1">
-                               <label htmlFor="card-expiry" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                 Expires
-                               </label>
-                               <input
-                                 type="text"
-                                 id="card-expiry"
-                                 placeholder="MM/YY"
-                                 className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white sm:text-sm"
-                               />
-                             </div>
-                             
-                             <div className="col-span-1">
-                               <label htmlFor="card-cvc" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                 CVC
-                               </label>
-                               <input
-                                 type="text"
-                                 id="card-cvc"
-                                 placeholder="•••"
-                                 className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white sm:text-sm"
-                               />
+                           <div className="mt-4">
+                             <p className="text-sm text-gray-500 dark:text-gray-400">
+                               You'll be redirected to our secure payment provider (Stripe) when you place your order.
+                             </p>
+                             <div className="mt-3 flex flex-wrap gap-2">
+                               <img src="/images/credit-cards/visa.svg" alt="Visa" className="h-6" />
+                               <img src="/images/credit-cards/mastercard.svg" alt="Mastercard" className="h-6" />
+                               <img src="/images/credit-cards/amex.svg" alt="American Express" className="h-6" />
+                               <img src="/images/credit-cards/discover.svg" alt="Discover" className="h-6" />
                              </div>
                            </div>
                          )}
@@ -664,6 +670,39 @@ function ShoppingCart() {
                          </div>
                        </div>
                      </div>
+                     
+                     {/* Selected shipping address */}
+                     {selectedAddressId && (
+                       <div className="mt-6">
+                         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                           Shipping To
+                         </h3>
+                         {shippingAddresses.find(addr => addr.id === selectedAddressId) && (
+                           <div className="border rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                             <p className="text-sm text-gray-700 dark:text-gray-300">
+                               <span className="font-medium">
+                                 {shippingAddresses.find(addr => addr.id === selectedAddressId).first_name}{' '}
+                                 {shippingAddresses.find(addr => addr.id === selectedAddressId).last_name}
+                               </span><br />
+                               {shippingAddresses.find(addr => addr.id === selectedAddressId).address_line1}<br />
+                               {shippingAddresses.find(addr => addr.id === selectedAddressId).address_line2 && (
+                                 <>{shippingAddresses.find(addr => addr.id === selectedAddressId).address_line2}<br /></>
+                               )}
+                               {shippingAddresses.find(addr => addr.id === selectedAddressId).city},{' '}
+                               {shippingAddresses.find(addr => addr.id === selectedAddressId).state}{' '}
+                               {shippingAddresses.find(addr => addr.id === selectedAddressId).postal_code}<br />
+                               {shippingAddresses.find(addr => addr.id === selectedAddressId).country}
+                             </p>
+                           </div>
+                         )}
+                         <button
+                           onClick={() => setCheckoutStep(2)}
+                           className="mt-2 text-sm text-violet-600 dark:text-violet-400 hover:underline"
+                         >
+                           Change
+                         </button>
+                       </div>
+                     )}
 
                      {/* Navigation buttons */}
                      <div className="mt-6 flex justify-between">
@@ -766,33 +805,6 @@ function ShoppingCart() {
                          </div>
                        </div>
                      )}
-                     
-                     {/* Shipping address summary */}
-                     {selectedAddressId && (
-                       <div className="mt-6">
-                         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                           Shipping To
-                         </h3>
-                         {shippingAddresses.find(addr => addr.id === selectedAddressId) && (
-                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                             <p>
-                               {shippingAddresses.find(addr => addr.id === selectedAddressId).first_name}{' '}
-                               {shippingAddresses.find(addr => addr.id === selectedAddressId).last_name}
-                             </p>
-                             <p>{shippingAddresses.find(addr => addr.id === selectedAddressId).address_line1}</p>
-                             {shippingAddresses.find(addr => addr.id === selectedAddressId).address_line2 && (
-                               <p>{shippingAddresses.find(addr => addr.id === selectedAddressId).address_line2}</p>
-                             )}
-                             <p>
-                               {shippingAddresses.find(addr => addr.id === selectedAddressId).city},{' '}
-                               {shippingAddresses.find(addr => addr.id === selectedAddressId).state}{' '}
-                               {shippingAddresses.find(addr => addr.id === selectedAddressId).postal_code}
-                             </p>
-                             <p>{shippingAddresses.find(addr => addr.id === selectedAddressId).country}</p>
-                           </div>
-                         )}
-                       </div>
-                     )}
                    </div>
                  </div>
                </div>
@@ -809,6 +821,13 @@ function ShoppingCart() {
            </div>
          </footer>
        </div>
+       
+       {/* Address Modal */}
+       <AddressModal
+         isOpen={showAddressModal}
+         onClose={() => setShowAddressModal(false)}
+         onAddressAdded={handleAddressAdded}
+       />
      </div>
    </ProtectedRoute>
  );

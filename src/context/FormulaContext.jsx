@@ -1,29 +1,23 @@
+// FormulaContext.jsx - Complete Version
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { formulaAPI, aiFormulaAPI, ingredientAPI } from '../services/api';
 
-// Initial state for the formula context
+// Initial state for the formula context - ensure arrays are initialized properly
 const initialState = {
-  // Current formula being created or edited
   currentFormula: {
     name: '',
     description: '',
     type: '',
     is_public: false,
     total_weight: 100.0,
-    ingredients: [],
-    steps: []
+    ingredients: [], // Initialize as empty array
+    steps: []        // Initialize as empty array
   },
-  // Available ingredients from the database
   availableIngredients: [],
-  // Ingredient phases (water phase, oil phase, etc.)
   ingredientPhases: [],
-  // Ingredient functions (emollient, preservative, etc.)
   ingredientFunctions: [],
-  // User's saved formulas
   savedFormulas: [],
-  // Compatibility issues between ingredients
   compatibilityIssues: [],
-  // Loading states for various operations
   isLoading: {
     ingredients: false,
     formulaCreation: false,
@@ -31,7 +25,6 @@ const initialState = {
     formulaFetching: false,
     aiRecommendation: false
   },
-  // Error states
   errors: {
     ingredients: null,
     formulaCreation: null,
@@ -39,7 +32,6 @@ const initialState = {
     formulaFetching: null,
     aiRecommendation: null
   },
-  // UI state for formula creation wizard
   wizard: {
     currentStep: 0,
     totalSteps: 4,
@@ -70,254 +62,296 @@ const actionTypes = {
   APPLY_AI_RECOMMENDATION: 'APPLY_AI_RECOMMENDATION'
 };
 
-// Reducer function
+// Improved reducer with additional null checks and error handling
 const formulaReducer = (state, action) => {
-  switch (action.type) {
-    case actionTypes.SET_CURRENT_FORMULA:
-      return {
-        ...state,
-        currentFormula: action.payload,
-        wizard: {
-          ...state.wizard,
-          isDirty: true
-        }
-      };
-    
-    case actionTypes.UPDATE_FORMULA_FIELD:
-      return {
-        ...state,
-        currentFormula: {
-          ...state.currentFormula,
-          [action.payload.field]: action.payload.value
-        },
-        wizard: {
-          ...state.wizard,
-          isDirty: true
-        }
-      };
-    
-    case actionTypes.ADD_INGREDIENT:
-      // Add ingredient with correct order
-      const newIngredients = [
-        ...state.currentFormula.ingredients,
-        {
-          ...action.payload,
-          order: state.currentFormula.ingredients.length + 1
-        }
-      ];
+  try {
+    switch (action.type) {
+      case actionTypes.SET_CURRENT_FORMULA:
+        return {
+          ...state,
+          currentFormula: {
+            ...initialState.currentFormula, // Make sure we have all default fields
+            ...(action.payload || {}),      // Then apply payload values
+            // Ensure these are arrays even if not present in payload
+            ingredients: action.payload?.ingredients || [],
+            steps: action.payload?.steps || []
+          },
+          wizard: {
+            ...state.wizard,
+            isDirty: true
+          }
+        };
       
-      return {
-        ...state,
-        currentFormula: {
-          ...state.currentFormula,
-          ingredients: newIngredients
-        },
-        wizard: {
-          ...state.wizard,
-          isDirty: true
-        }
-      };
-    
-    case actionTypes.REMOVE_INGREDIENT:
-      // Remove ingredient and re-order remaining ingredients
-      const filteredIngredients = state.currentFormula.ingredients
-        .filter(ing => ing.ingredient_id !== action.payload)
-        .map((ing, index) => ({
-          ...ing,
-          order: index + 1
-        }));
+      case actionTypes.UPDATE_FORMULA_FIELD:
+        return {
+          ...state,
+          currentFormula: {
+            ...state.currentFormula,
+            [action.payload.field]: action.payload.value
+          },
+          wizard: {
+            ...state.wizard,
+            isDirty: true
+          }
+        };
       
-      return {
-        ...state,
-        currentFormula: {
-          ...state.currentFormula,
-          ingredients: filteredIngredients
-        },
-        wizard: {
-          ...state.wizard,
-          isDirty: true
-        }
-      };
-    
-    case actionTypes.UPDATE_INGREDIENT:
-      // Update specific ingredient properties
-      const updatedIngredients = state.currentFormula.ingredients.map(ing => 
-        ing.ingredient_id === action.payload.ingredient_id
-          ? { ...ing, ...action.payload }
-          : ing
-      );
+      case actionTypes.ADD_INGREDIENT:
+        // Ensure ingredients array exists before adding to it
+        const currentIngredients = state.currentFormula.ingredients || [];
+        const newIngredients = [
+          ...currentIngredients,
+          {
+            ...action.payload,
+            order: currentIngredients.length + 1
+          }
+        ];
+        
+        return {
+          ...state,
+          currentFormula: {
+            ...state.currentFormula,
+            ingredients: newIngredients
+          },
+          wizard: {
+            ...state.wizard,
+            isDirty: true
+          }
+        };
       
-      return {
-        ...state,
-        currentFormula: {
-          ...state.currentFormula,
-          ingredients: updatedIngredients
-        },
-        wizard: {
-          ...state.wizard,
-          isDirty: true
+      case actionTypes.REMOVE_INGREDIENT:
+        // Check if ingredients array exists
+        if (!state.currentFormula.ingredients) {
+          return state;
         }
-      };
-    
-    case actionTypes.SET_AVAILABLE_INGREDIENTS:
-      return {
-        ...state,
-        availableIngredients: action.payload
-      };
-    
-    case actionTypes.SET_INGREDIENT_PHASES:
-      return {
-        ...state,
-        ingredientPhases: action.payload
-      };
-    
-    case actionTypes.SET_INGREDIENT_FUNCTIONS:
-      return {
-        ...state,
-        ingredientFunctions: action.payload
-      };
-    
-    case actionTypes.SET_SAVED_FORMULAS:
-      return {
-        ...state,
-        savedFormulas: action.payload
-      };
-    
-    case actionTypes.SET_COMPATIBILITY_ISSUES:
-      return {
-        ...state,
-        compatibilityIssues: action.payload
-      };
-    
-    case actionTypes.SET_LOADING:
-      return {
-        ...state,
-        isLoading: {
-          ...state.isLoading,
-          [action.payload.key]: action.payload.value
-        }
-      };
-    
-    case actionTypes.SET_ERROR:
-      return {
-        ...state,
-        errors: {
-          ...state.errors,
-          [action.payload.key]: action.payload.value
-        }
-      };
-    
-    case actionTypes.RESET_FORMULA:
-      return {
-        ...state,
-        currentFormula: initialState.currentFormula,
-        compatibilityIssues: [],
-        wizard: {
-          ...state.wizard,
-          currentStep: 0,
-          isDirty: false
-        }
-      };
-    
-    case actionTypes.SET_WIZARD_STEP:
-      return {
-        ...state,
-        wizard: {
-          ...state.wizard,
-          currentStep: action.payload
-        }
-      };
-    
-    case actionTypes.SET_WIZARD_DIRTY:
-      return {
-        ...state,
-        wizard: {
-          ...state.wizard,
-          isDirty: action.payload
-        }
-      };
-    
-    case actionTypes.ADD_FORMULA_STEP:
-      // Add step with correct order
-      const newSteps = [
-        ...state.currentFormula.steps,
-        {
-          ...action.payload,
-          order: state.currentFormula.steps.length + 1
-        }
-      ];
+        
+        // Remove ingredient and re-order remaining ingredients
+        const filteredIngredients = state.currentFormula.ingredients
+          .filter(ing => ing.ingredient_id !== action.payload)
+          .map((ing, index) => ({
+            ...ing,
+            order: index + 1
+          }));
+        
+        return {
+          ...state,
+          currentFormula: {
+            ...state.currentFormula,
+            ingredients: filteredIngredients
+          },
+          wizard: {
+            ...state.wizard,
+            isDirty: true
+          }
+        };
       
-      return {
-        ...state,
-        currentFormula: {
-          ...state.currentFormula,
-          steps: newSteps
-        },
-        wizard: {
-          ...state.wizard,
-          isDirty: true
+      case actionTypes.UPDATE_INGREDIENT:
+        // Check if ingredients array exists
+        if (!state.currentFormula.ingredients) {
+          return state;
         }
-      };
-    
-    case actionTypes.UPDATE_FORMULA_STEP:
-      // Update specific step
-      const updatedSteps = state.currentFormula.steps.map(step => 
-        step.order === action.payload.order
-          ? { ...step, ...action.payload }
-          : step
-      );
+        
+        // Update specific ingredient properties
+        const updatedIngredients = state.currentFormula.ingredients.map(ing => 
+          ing.ingredient_id === action.payload.ingredient_id
+            ? { ...ing, ...action.payload }
+            : ing
+        );
+        
+        return {
+          ...state,
+          currentFormula: {
+            ...state.currentFormula,
+            ingredients: updatedIngredients
+          },
+          wizard: {
+            ...state.wizard,
+            isDirty: true
+          }
+        };
       
-      return {
-        ...state,
-        currentFormula: {
-          ...state.currentFormula,
-          steps: updatedSteps
-        },
-        wizard: {
-          ...state.wizard,
-          isDirty: true
-        }
-      };
-    
-    case actionTypes.REMOVE_FORMULA_STEP:
-      // Remove step and re-order remaining steps
-      const filteredSteps = state.currentFormula.steps
-        .filter(step => step.order !== action.payload)
-        .map((step, index) => ({
-          ...step,
-          order: index + 1
-        }));
+      case actionTypes.SET_AVAILABLE_INGREDIENTS:
+        return {
+          ...state,
+          availableIngredients: action.payload || []
+        };
       
-      return {
-        ...state,
-        currentFormula: {
-          ...state.currentFormula,
-          steps: filteredSteps
-        },
-        wizard: {
-          ...state.wizard,
-          isDirty: true
+      case actionTypes.SET_INGREDIENT_PHASES:
+        return {
+          ...state,
+          ingredientPhases: action.payload || []
+        };
+      
+      case actionTypes.SET_INGREDIENT_FUNCTIONS:
+        return {
+          ...state,
+          ingredientFunctions: action.payload || []
+        };
+      
+      case actionTypes.SET_SAVED_FORMULAS:
+        return {
+          ...state,
+          savedFormulas: action.payload || []
+        };
+      
+      case actionTypes.SET_COMPATIBILITY_ISSUES:
+        return {
+          ...state,
+          compatibilityIssues: action.payload || []
+        };
+      
+      case actionTypes.SET_LOADING:
+        return {
+          ...state,
+          isLoading: {
+            ...state.isLoading,
+            [action.payload.key]: action.payload.value
+          }
+        };
+      
+      case actionTypes.SET_ERROR:
+        return {
+          ...state,
+          errors: {
+            ...state.errors,
+            [action.payload.key]: action.payload.value
+          }
+        };
+      
+      case actionTypes.RESET_FORMULA:
+        return {
+          ...state,
+          currentFormula: initialState.currentFormula,
+          compatibilityIssues: [],
+          wizard: {
+            ...state.wizard,
+            currentStep: 0,
+            isDirty: false
+          }
+        };
+      
+      case actionTypes.SET_WIZARD_STEP:
+        return {
+          ...state,
+          wizard: {
+            ...state.wizard,
+            currentStep: action.payload
+          }
+        };
+      
+      case actionTypes.SET_WIZARD_DIRTY:
+        return {
+          ...state,
+          wizard: {
+            ...state.wizard,
+            isDirty: action.payload
+          }
+        };
+      
+      case actionTypes.ADD_FORMULA_STEP:
+        // Ensure steps array exists
+        const currentSteps = state.currentFormula.steps || [];
+        
+        // Add step with correct order
+        const newSteps = [
+          ...currentSteps,
+          {
+            ...action.payload,
+            order: currentSteps.length + 1
+          }
+        ];
+        
+        return {
+          ...state,
+          currentFormula: {
+            ...state.currentFormula,
+            steps: newSteps
+          },
+          wizard: {
+            ...state.wizard,
+            isDirty: true
+          }
+        };
+      
+      case actionTypes.UPDATE_FORMULA_STEP:
+        // Check if steps array exists
+        if (!state.currentFormula.steps) {
+          return state;
         }
-      };
-    
-    case actionTypes.APPLY_AI_RECOMMENDATION:
-      // Apply AI-generated formula while preserving any user modifications
-      return {
-        ...state,
-        currentFormula: {
-          ...state.currentFormula,
-          ...action.payload,
-          // If user has already named the formula, keep their name
-          name: state.currentFormula.name || action.payload.name,
-        },
-        wizard: {
-          ...state.wizard,
-          isDirty: true
+        
+        // Update specific step
+        const updatedSteps = state.currentFormula.steps.map(step => 
+          step.order === action.payload.order
+            ? { ...step, ...action.payload }
+            : step
+        );
+        
+        return {
+          ...state,
+          currentFormula: {
+            ...state.currentFormula,
+            steps: updatedSteps
+          },
+          wizard: {
+            ...state.wizard,
+            isDirty: true
+          }
+        };
+      
+      case actionTypes.REMOVE_FORMULA_STEP:
+        // Check if steps array exists
+        if (!state.currentFormula.steps) {
+          return state;
         }
-      };
-    
-    default:
-      return state;
+        
+        // Remove step and re-order remaining steps
+        const filteredSteps = state.currentFormula.steps
+          .filter(step => step.order !== action.payload)
+          .map((step, index) => ({
+            ...step,
+            order: index + 1
+          }));
+        
+        return {
+          ...state,
+          currentFormula: {
+            ...state.currentFormula,
+            steps: filteredSteps
+          },
+          wizard: {
+            ...state.wizard,
+            isDirty: true
+          }
+        };
+      
+      case actionTypes.APPLY_AI_RECOMMENDATION:
+        // Apply AI-generated formula while preserving any user modifications
+        // Make sure to initialize empty arrays if they don't exist in the payload
+        const aiFormula = action.payload || {};
+        
+        return {
+          ...state,
+          currentFormula: {
+            ...state.currentFormula,
+            ...aiFormula,
+            // If user has already named the formula, keep their name
+            name: state.currentFormula.name || aiFormula.name || '',
+            // Ensure these are arrays
+            ingredients: aiFormula.ingredients || state.currentFormula.ingredients || [],
+            steps: aiFormula.steps || state.currentFormula.steps || []
+          },
+          wizard: {
+            ...state.wizard,
+            isDirty: true
+          }
+        };
+      
+      default:
+        return state;
+    }
+  } catch (error) {
+    console.error('Error in formula reducer:', error);
+    // Return unchanged state in case of error
+    return state;
   }
 };
 
@@ -366,7 +400,11 @@ export const FormulaProvider = ({ children }) => {
   // Save draft formula to localStorage when it changes
   useEffect(() => {
     if (state.wizard.isDirty) {
-      localStorage.setItem('formulaDraft', JSON.stringify(state.currentFormula));
+      try {
+        localStorage.setItem('formulaDraft', JSON.stringify(state.currentFormula));
+      } catch (error) {
+        console.error('Error saving draft formula:', error);
+      }
     }
   }, [state.currentFormula, state.wizard.isDirty]);
   
@@ -438,7 +476,7 @@ export const FormulaProvider = ({ children }) => {
   };
   
   const checkIngredientCompatibility = async () => {
-    const ingredientIds = state.currentFormula.ingredients.map(ing => ing.ingredient_id);
+    const ingredientIds = state.currentFormula.ingredients?.map(ing => ing.ingredient_id) || [];
     
     if (ingredientIds.length < 2) {
       dispatch({
@@ -459,86 +497,177 @@ export const FormulaProvider = ({ children }) => {
     }
   };
   
-  const generateAIFormula = async (productType, skinConcerns, preferredIngredients, avoidedIngredients) => {
-    dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'aiRecommendation', value: true } });
-    dispatch({ type: actionTypes.SET_ERROR, payload: { key: 'aiRecommendation', value: null } });
+  // Enhanced AI formula generation function that accepts comprehensive user data
+  
+// Update the generateAIFormula function in FormulaContext.jsx to return the formula ID
+
+const generateAIFormula = async (formulaData) => {
+  dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'aiRecommendation', value: true } });
+  dispatch({ type: actionTypes.SET_ERROR, payload: { key: 'aiRecommendation', value: null } });
+  
+  try {
+    // Ensure we have a product type (required)
+    if (!formulaData.product_type) {
+      throw new Error('Product type is required');
+    }
+    
+    // Create a sanitized copy to avoid mutating the original data
+    const sanitizedData = { ...formulaData };
+    
+    // Define all fields that must be arrays
+    const arrayFields = [
+      'skin_concerns', 'sensitivities', 'preferred_textures', 
+      'preferred_product_types', 'lifestyle_factors', 'sales_channels',
+      'performance_goals', 'desired_certifications', 'preferred_ingredients',
+      'avoided_ingredients', 'hair_concerns', 'target_markets'
+    ];
+    
+    // Ensure these fields are arrays
+    arrayFields.forEach(field => {
+      if (sanitizedData[field] !== undefined) {
+        if (!Array.isArray(sanitizedData[field])) {
+          // If it's a string that looks like a JSON array, parse it
+          if (typeof sanitizedData[field] === 'string' && 
+              (sanitizedData[field].startsWith('[') && sanitizedData[field].endsWith(']'))) {
+            try {
+              sanitizedData[field] = JSON.parse(sanitizedData[field]);
+            } catch (e) {
+              console.warn(`Field ${field} looks like JSON but failed to parse:`, e);
+              sanitizedData[field] = [];
+            }
+          } else {
+            // Not an array and not a parseable string - use empty array
+            console.warn(`Field ${field} is not an array, using empty array instead of:`, sanitizedData[field]);
+            sanitizedData[field] = [];
+          }
+        }
+      } else {
+        // Field is missing - provide empty array
+        sanitizedData[field] = [];
+      }
+    });
+    
+    // Special handling for brand_info if it exists
+    if (sanitizedData.brand_info && typeof sanitizedData.brand_info === 'object') {
+      const brandFields = ['target_markets', 'sales_channels', 'performance_goals', 'desired_certifications'];
+      
+      brandFields.forEach(field => {
+        if (sanitizedData.brand_info[field] !== undefined) {
+          if (!Array.isArray(sanitizedData.brand_info[field])) {
+            if (typeof sanitizedData.brand_info[field] === 'string' && 
+                sanitizedData.brand_info[field].startsWith('[') && 
+                sanitizedData.brand_info[field].endsWith(']')) {
+              try {
+                sanitizedData.brand_info[field] = JSON.parse(sanitizedData.brand_info[field]);
+              } catch (e) {
+                console.warn(`brand_info.${field} looks like JSON but failed to parse:`, e);
+                sanitizedData.brand_info[field] = [];
+              }
+            } else {
+              sanitizedData.brand_info[field] = [];
+            }
+          }
+        } else {
+          sanitizedData.brand_info[field] = [];
+        }
+      });
+    }
+    
+    console.log('Sending sanitized formula data to API:', sanitizedData);
+    
+    // Send sanitized data to the API
+    const response = await aiFormulaAPI.generateFormula(sanitizedData);
+    
+    // Apply the AI-generated formula
+    dispatch({
+      type: actionTypes.APPLY_AI_RECOMMENDATION,
+      payload: response.data
+    });
+    
+    console.log('AI-generated formula:', response.data);
+    
+    // Return the full response data so components can access the formula ID
+    return response.data;
+  } catch (error) {
+    console.error('Error generating AI formula:', error);
+    
+    let errorMessage = 'Failed to generate formula';
+    
+    if (error.response) {
+      console.error('API Error Response:', error.response.data);
+      console.error('API Error Status:', error.response.status);
+      
+      if (error.response.data && error.response.data.detail) {
+        if (Array.isArray(error.response.data.detail)) {
+          // This is typical for FastAPI validation errors
+          errorMessage = error.response.data.detail
+            .map(err => err.msg || JSON.stringify(err))
+            .join(', ');
+        } else {
+          errorMessage = error.response.data.detail;
+        }
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    dispatch({
+      type: actionTypes.SET_ERROR,
+      payload: { key: 'aiRecommendation', value: errorMessage }
+    });
+    
+    throw error;
+  } finally {
+    dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'aiRecommendation', value: false } });
+  }
+};
+  const saveFormula = async () => {
+    dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'formulaSaving', value: true } });
+    dispatch({ type: actionTypes.SET_ERROR, payload: { key: 'formulaSaving', value: null } });
     
     try {
-      const response = await aiFormulaAPI.generateFormula({
-        product_type: productType,
-        skin_concerns: skinConcerns,
-        preferred_ingredients: preferredIngredients,
-        avoided_ingredients: avoidedIngredients
-      });
+      // Format the formula data for API
+      const formulaData = {
+        ...state.currentFormula,
+        ingredients: state.currentFormula.ingredients?.map(ing => ({
+          ingredient_id: ing.ingredient_id,
+          percentage: parseFloat(ing.percentage || 0), // Handle undefined
+          order: ing.order || 0 // Handle undefined
+        })) || [],
+        steps: state.currentFormula.steps?.map(step => ({
+          description: step.description,
+          order: step.order || 0 // Handle undefined
+        })) || []
+      };
       
-      // Apply the AI-generated formula
-      dispatch({
-        type: actionTypes.APPLY_AI_RECOMMENDATION,
-        payload: response.data
-      });
+      // Log the data being sent for debugging
+      console.log('Saving formula data:', formulaData);
+      
+      // Set a timeout to avoid hanging forever
+      const response = await Promise.race([
+        formulaAPI.createFormula(formulaData),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), 30000))
+      ]);
+      
+      // Clear draft formula from localStorage
+      localStorage.removeItem('formulaDraft');
+      
+      // Reset form dirty state
+      dispatch({ type: actionTypes.SET_WIZARD_DIRTY, payload: false });
       
       return response.data;
     } catch (error) {
-      console.error('Error generating AI formula:', error);
+      console.error('Error saving formula:', error);
+      const errorMessage = error.response?.data?.detail || 'Failed to save formula';
       dispatch({
-        type: actionTypes.SET_ERROR,
-        payload: { key: 'aiRecommendation', value: error.response?.data?.detail || 'Failed to generate formula' }
+        type: actionTypes.SET_ERROR, 
+        payload: { key: 'formulaSaving', value: errorMessage }
       });
       throw error;
     } finally {
-      dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'aiRecommendation', value: false } });
+      dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'formulaSaving', value: false } });
     }
   };
-  
-  
-
-const saveFormula = async () => {
-  dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'formulaSaving', value: true } });
-  dispatch({ type: actionTypes.SET_ERROR, payload: { key: 'formulaSaving', value: null } });
-  
-  try {
-    // Format the formula data for API
-    const formulaData = {
-      ...state.currentFormula,
-      ingredients: state.currentFormula.ingredients.map(ing => ({
-        ingredient_id: ing.ingredient_id,
-        percentage: parseFloat(ing.percentage || 0), // Handle undefined
-        order: ing.order || 0 // Handle undefined
-      })),
-      steps: state.currentFormula.steps.map(step => ({
-        description: step.description,
-        order: step.order || 0 // Handle undefined
-      }))
-    };
-    
-    // Log the data being sent for debugging
-    console.log('Saving formula data:', formulaData);
-    
-    // Set a timeout to avoid hanging forever
-    const response = await Promise.race([
-      formulaAPI.createFormula(formulaData),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), 30000))
-    ]);
-    
-    // Clear draft formula from localStorage
-    localStorage.removeItem('formulaDraft');
-    
-    // Reset form dirty state
-    dispatch({ type: actionTypes.SET_WIZARD_DIRTY, payload: false });
-    
-    return response.data;
-  } catch (error) {
-    console.error('Error saving formula:', error);
-    const errorMessage = error.response?.data?.detail || 'Failed to save formula';
-    dispatch({
-      type: actionTypes.SET_ERROR, 
-      payload: { key: 'formulaSaving', value: errorMessage }
-    });
-    throw error;
-  } finally {
-    dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'formulaSaving', value: false } });
-  }
-};
   
   // Provide value to consumers
   const contextValue = {
