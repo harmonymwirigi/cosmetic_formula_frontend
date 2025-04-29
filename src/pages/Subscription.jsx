@@ -18,61 +18,48 @@ function Subscription() {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
-  // Pricing plans
-  const plans = {
-    free: {
-      name: 'Free',
-      description: 'Essential tools for beginners',
-      monthlyPrice: 0,
-      annualPrice: 0,
-      features: [
-        { text: 'Up to 3 formulas', included: true },
-        { text: 'Basic ingredients only', included: true },
-        { text: 'Basic formula types', included: true },
-        { text: 'Limited AI recommendations', included: true },
-        { text: 'Export to PDF', included: true },
-        { text: 'Premium ingredients', included: false },
-        { text: 'Unlimited formulas', included: false },
-        { text: 'Professional ingredients', included: false },
-        { text: 'Advanced formula analysis', included: false },
-      ]
-    },
-    premium: {
-      name: 'Premium',
-      description: 'Perfect for enthusiasts',
-      monthlyPrice: 9.99,
-      annualPrice: 99.99,
-      features: [
-        { text: 'Unlimited formulas', included: true },
-        { text: 'All basic ingredients', included: true },
-        { text: 'Premium ingredients', included: true },
-        { text: 'All formula types', included: true },
-        { text: 'Advanced AI recommendations', included: true },
-        { text: 'Export to multiple formats', included: true },
-        { text: 'Formula version history', included: true },
-        { text: 'Professional ingredients', included: false },
-        { text: 'Advanced formula analysis', included: false },
-      ]
-    },
-    professional: {
-      name: 'Professional',
-      description: 'For serious formulators',
-      monthlyPrice: 24.99,
-      annualPrice: 249.99,
-      features: [
-        { text: 'Unlimited formulas', included: true },
-        { text: 'All basic ingredients', included: true },
-        { text: 'All premium ingredients', included: true },
-        { text: 'Professional ingredients', included: true },
-        { text: 'All formula types', included: true },
-        { text: 'Advanced AI recommendations', included: true },
-        { text: 'Export to multiple formats', included: true },
-        { text: 'Formula version history', included: true },
-        { text: 'Advanced formula analysis', included: true },
-      ]
-    }
-  };
-
+  // Pricing plans=
+const plans = [
+  {
+    id: 'free',
+    name: 'Free',
+    price: '0',
+    description: 'For beginners and hobbyists',
+    features: [
+      '3 Formulas per Month',
+      'AI Formula Generation',
+      'Basic Formula Management'
+    ],
+    cta: 'Get Started'
+  },
+  {
+    id: 'creator',
+    name: 'Creator',
+    price: '19',
+    description: 'For serious creators',
+    features: [
+      '30 Formulas per Month',
+      'AI Formula Generation',
+      'PDF & Notion Export',
+      'Formula Sharing'
+    ],
+    cta: 'Start 7-Day Free Trial'
+  },
+  {
+    id: 'pro_lab',
+    name: 'Pro Lab',
+    price: '49',
+    description: 'For professional labs',
+    features: [
+      'Unlimited Formulas',
+      'AI Formula Generation',
+      'SOP & SDS Generation',
+      'Regulatory Features',
+      'Priority Support'
+    ],
+    cta: 'Start 7-Day Free Trial'
+  }
+];
   // Fetch user data
   useEffect(() => {
     const fetchData = async () => {

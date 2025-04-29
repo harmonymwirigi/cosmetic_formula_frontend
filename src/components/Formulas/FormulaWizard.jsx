@@ -39,12 +39,9 @@ const FormulaWizard = () => {
   // Step configuration
   const steps = [
     { name: 'Basic Details', description: 'Enter formula information' },
-    { name: 'AI Recommendation', description: 'Get AI-suggested formula (optional)' },
-    { name: 'Ingredients', description: 'Select and adjust ingredients' },
-    { name: 'Manufacturing Steps', description: 'Define the manufacturing process' },
+    { name: 'AI Recommendation', description: 'Get AI-suggested formula' },
     { name: 'Review & Save', description: 'Review the complete formula' }
   ];
-
 
   // Validate form at current step
   const validateCurrentStep = () => {
@@ -54,7 +51,6 @@ const FormulaWizard = () => {
       switch (wizard.currentStep) {
         case 0: // Basic Details
           if (!currentFormula.name) errors.name = 'Formula name is required';
-          if (!currentFormula.type) errors.type = 'Formula type is required';
           break;
         case 2: // Ingredients
           if (!currentFormula.ingredients || currentFormula.ingredients.length === 0) {
@@ -91,9 +87,14 @@ const FormulaWizard = () => {
   const handleNext = () => {
     try {
       if (validateCurrentStep()) {
-        // Make sure we don't exceed the number of steps
-        const nextStep = Math.min(wizard.currentStep + 1, steps.length - 1);
-        setWizardStep(nextStep);
+        if (wizard.currentStep === 1) {
+          // After AI generation, skip to review & save
+          setWizardStep(steps.length - 1);
+        } else {
+          // Make sure we don't exceed the number of steps
+          const nextStep = Math.min(wizard.currentStep + 1, steps.length - 1);
+          setWizardStep(nextStep);
+        }
       }
     } catch (error) {
       console.error('Error navigating to next step:', error);
@@ -218,6 +219,7 @@ const FormulaWizard = () => {
       {/* Step content */}
       <div className="p-5">
         {/* Step 1: Basic Details */}
+       
         {wizard.currentStep === 0 && (
           <div className="space-y-6">
             <div>
@@ -236,43 +238,6 @@ const FormulaWizard = () => {
               {validationErrors.name && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.name}</p>
               )}
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Formula Type<span className="text-red-500">*</span>
-              </label>
-              <select
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                  validationErrors.type ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
-                value={currentFormula.type || ''}
-                onChange={(e) => updateFormulaField('type', e.target.value)}
-              >
-                <option value="">Select a formula type</option>
-                <option value="Serum">Serum</option>
-                <option value="Moisturizer">Moisturizer</option>
-                <option value="Cleanser">Cleanser</option>
-                <option value="Toner">Toner</option>
-                <option value="Mask">Face Mask</option>
-                <option value="Essence">Essence</option>
-              </select>
-              {validationErrors.type && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.type}</p>
-              )}
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Description
-              </label>
-              <textarea
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="Enter a description for your formula"
-                rows="4"
-                value={currentFormula.description || ''}
-                onChange={(e) => updateFormulaField('description', e.target.value)}
-              ></textarea>
             </div>
             
             <div>
@@ -309,41 +274,29 @@ const FormulaWizard = () => {
           </div>
         )}
         
-        {/* Step 2: AI Recommendation */}
-        {wizard.currentStep === 1 && (
-          <div>
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md mb-6">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3 flex-1 md:flex md:justify-between">
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    This step is optional. You can either use AI to generate a formula based on your needs, or skip to the next step for manual creation.
-                  </p>
-                </div>
+       {/* Step 2: AI Recommendation */}
+      {wizard.currentStep === 1 && (
+        <div>
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1 md:flex md:justify-between">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Choose a product type and click "Generate AI Formula". Our AI will create a complete formula based on your profile.
+                </p>
               </div>
             </div>
-            
-            <EnhancedFormulaRecommendation 
-              userType={(currentFormula?.subscription_type) || "premium"} 
-            />
-            
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none"
-                onClick={handleNext}
-              >
-                {currentFormula.ingredients && currentFormula.ingredients.length > 0 
-                  ? 'Continue with AI Recommendation' 
-                  : 'Skip AI Recommendation'}
-              </button>
-            </div>
           </div>
-        )}
+          
+          <EnhancedFormulaRecommendation 
+            userType={(currentFormula?.subscription_type) || "premium"} 
+          />
+        </div>
+      )}
         
         {/* Step 3: Ingredients */}
         {wizard.currentStep === 2 && (

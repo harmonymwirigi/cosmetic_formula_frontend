@@ -18,8 +18,9 @@ import UserProfileForm  from './components/Profile/UserProfileForm';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Fintech from './pages/Fintech';
+import PhoneVerification from './pages/PhoneVerification';
 import Customers from './pages/ecommerce/Customers';
-import Orders from './pages/ecommerce/Orders';
+//mport Orders from './pages/ecommerce/Orders';
 import Invoices from './pages/ecommerce/Invoices';
 import { UserProfileProvider } from './context/UserProfileContext';
 //import Shop from './pages/ecommerce/Shop';
@@ -50,7 +51,11 @@ import TasksList from './pages/tasks/TasksList';
 import Inbox from './pages/Inbox';
 import Calendar from './pages/Calendar';
 import Account from './pages/settings/Account';
+import Addresses from './pages/settings/Addresses';
 import Notifications from './pages/settings/Notifications';
+import { ToastProvider } from './components/Notifications/ToastContainer';
+import NotificationsPage from './pages/NotificationsPage';
+import NotificationPreferencesPage from './pages/settings/NotificationPreferencesPage';
 import Apps from './pages/settings/Apps';
 import Plans from './pages/settings/Plans';
 import Billing from './pages/settings/Billing';
@@ -93,8 +98,9 @@ import CategoryView from './pages/knowledge/CategoryView';
 import Shop from './pages/shop/Shop';
 import ShoppingCart from './pages/shop/ShoppingCart';
 import ProductView from './pages/shop/ProductView';
-import OrderConfirmation from './pages/shop/OrderConfirmation';
-import OrderHistory from './pages/shop/OrderHistory';
+import Orders from './pages/shop/Orders';
+import OrderDetail from './pages/shop/OrderDetail';
+import OrderConfirmation from './pages/shop/OrderConfirmation'
 function App() {
 
   const location = useLocation();
@@ -107,26 +113,25 @@ function App() {
 
   return (
     <>
-    <NotificationProvider>
+    <ToastProvider>
+      <NotificationProvider>
       <UserProfileProvider>
       <Routes>
         <Route exact path="/" element={<Dashboard />} />
         <Route path="/notifications" element={
-          <ProtectedRoute>
-            <Notifications />
-          </ProtectedRoute>
-        } />
-        
-        {/* Update the settings/notifications route */}
-        <Route path="/settings/notifications" element={
-          <ProtectedRoute>
-            <Notifications />
-          </ProtectedRoute>
-        } />
+  <ProtectedRoute>
+    <NotificationsPage />
+  </ProtectedRoute>
+} />
+<Route path="/settings/notifications" element={
+  <ProtectedRoute>
+    <NotificationPreferencesPage />
+  </ProtectedRoute>
+} />
         <Route path="/dashboard/analytics" element={<Analytics />} />
         <Route path="/dashboard/fintech" element={<Fintech />} />
         <Route path="/ecommerce/customers" element={<Customers />} />
-        <Route path="/ecommerce/orders" element={<Orders />} />
+        {/* <Route path="/ecommerce/orders" element={<Orders />} /> */}
         <Route path="/ecommerce/invoices" element={<Invoices />} />
         <Route path="/ecommerce/shop" element={<Shop />} />
         <Route path="/ecommerce/shop-2" element={<Shop2 />} />
@@ -135,6 +140,7 @@ function App() {
         <Route path="/ecommerce/cart-2" element={<Cart2 />} />
         <Route path="/ecommerce/cart-3" element={<Cart3 />} />
         <Route path="/ecommerce/pay" element={<Pay />} />
+        <Route path="/verify-phone" element={<PhoneVerification />} />
         <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/community/users-tabs" element={<UsersTabs />} />
         <Route path="/community/users-tiles" element={<UsersTiles />} />
@@ -157,7 +163,10 @@ function App() {
         <Route path="/inbox" element={<Inbox />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/settings/account" element={<Account />} />
+        <Route path="/settings/addresses" element={<Addresses />} />
         <Route path="/settings/notifications" element={<Notifications />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/settings/notifications" element={<NotificationPreferencesPage />} />
         <Route path="/settings/apps" element={<Apps />} />
         <Route path="/settings/plans" element={<Plans />} />
         <Route path="/settings/billing" element={<Billing />} />
@@ -200,8 +209,9 @@ function App() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/shop/products/:slug" element={<ProductView />} />
         <Route path="/shop/cart" element={<ShoppingCart />} />
-        <Route path="/shop/orders/:id/confirmation" element={<OrderConfirmation />} />
-        <Route path="/shop/orders" element={<OrderHistory />} />
+        <Route path="/shop/orders/:orderId" element={<OrderDetail />} />
+        <Route path="/shop/orders/:orderId/confirmation" element={<OrderConfirmation />} />
+        <Route path="/shop/orders" element={<Orders />} />
         {/* Cosmetic Formula Lab Routes */}
         <Route path="/formulas/create" element={
     <FormulaProvider>
@@ -224,6 +234,7 @@ function App() {
       </Routes>
       </UserProfileProvider>
       </NotificationProvider>
+    </ToastProvider>
     </>
   );
 }

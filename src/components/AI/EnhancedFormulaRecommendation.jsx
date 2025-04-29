@@ -288,13 +288,13 @@ const EnhancedFormulaRecommendation = ({ userType = 'free' }) => {
             )}
             
             <button
-              onClick={handleNextStep}
+              onClick={() => setWizardStep(steps.length - 1)} // Skip directly to the final review step
               className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none"
             >
               <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
-              Continue to Ingredients
+              Continue to Review
             </button>
           </div>
         </div>
@@ -304,23 +304,7 @@ const EnhancedFormulaRecommendation = ({ userType = 'free' }) => {
         AI Formula Generator
       </h2>
       
-      {/* Free user notice */}
-      {userType === 'free' && (
-        <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-amber-700 dark:text-amber-300">
-                AI formula generation is a premium feature. <a href="/subscription" className="font-medium underline">Upgrade your account</a> to access personalized formulations.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+     
       
       {/* Profile Completion Check for non-free users */}
       {userType !== 'free' && !isProfileComplete && (
@@ -358,7 +342,6 @@ const EnhancedFormulaRecommendation = ({ userType = 'free' }) => {
           onChange={(e) => setSelectedProductType(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           required
-          disabled={userType === 'free'}
         >
           <option value="">Select Product Type</option>
           {productTypeOptions.map(option => (

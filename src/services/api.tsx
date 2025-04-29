@@ -98,11 +98,27 @@ export const userAPI = {
   },
 };
 
+export const exportAPI = {
+  exportFormula: (id, format) => {
+    // Use a direct window location change for file downloads
+    window.location.href = `${api.defaults.baseURL}/export/${id}/export?format=${format}`;
+    return Promise.resolve({ success: true }); // Return a resolved promise for consistency
+  },
+};
+
 // Formulas API
 export const formulaAPI = {
-  getFormulas: () => {
-    return api.get('/formulas/read_formulas');
-  },
+// In your formulaAPI object
+getFormulas: async () => {
+  try {
+    const response = await api.get('/formulas/read_formulas');
+    console.log('Formulas response:', response.data); // Add this for debugging
+    return response;
+  } catch (error) {
+    console.error('Error fetching formulas:', error);
+    throw error;
+  }
+},
   duplicateFormula: (id: number, newName?: string) => {
     return api.post(`/formulas/duplicate/${id}`, { new_name: newName });
   },
@@ -131,6 +147,7 @@ export const formulaAPI = {
       throw error;
     }
   },
+  
 };
 
 // AI Formula API
@@ -202,7 +219,11 @@ export const shopAPI = {
   
   // Orders
   createOrder: (shippingAddressId, paymentMethod, notes) => 
-    api.post('/shop/orders', { shipping_address_id: shippingAddressId, payment_method: paymentMethod, notes }),
+    api.post('/shop/orders', { 
+        shipping_address_id: shippingAddressId, 
+        payment_method: paymentMethod, 
+        notes 
+    }),
   getOrders: (params) => api.get('/shop/orders', { params }),
   getOrder: (orderId) => api.get(`/shop/orders/${orderId}`),
   
@@ -258,47 +279,87 @@ export const userProfileAPI = {
   }
 };
 
+
 export const notificationAPI = {
-  // Check your frontend API service
-getUserNotifications: async (skip = 0, limit = 100, unreadOnly = false) => {
-  try {
-    // Make sure the URL matches exactly - note the trailing slash!
-    const response = await api.get('/notifications/', {
-      params: {
-        skip,
-        limit,
-        unread_only: unreadOnly
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-    // Return empty array to prevent UI errors
-    return [];
-  }
-},
-  
-  markAsRead: async (notificationId: number) => {
-    return api.post(`/notifications/${notificationId}/read`);
+  // Get user notifications with optional filtering
+  getUserNotifications: async (skip = 0, limit = 100, unreadOnly = false) => {
+    try {
+      const response = await api.get('/notifications/', {
+        params: {
+          skip,
+          limit,
+          unread_only: unreadOnly
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      return [];
+    }
   },
   
+  // Mark a single notification as read
+  markAsRead: async (notificationId) => {
+    try {
+      const response = await api.post(`/notifications/${notificationId}/read`);
+      return response.data;
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  },
+  
+  // Mark all notifications as read
   markAllAsRead: async () => {
-    return api.post('/notifications/read-all');
+    try {
+      const response = await api.post('/notifications/read-all');
+      return response.data;
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw error;
+    }
   },
   
-  deleteNotification: async (notificationId: number) => {
-    return api.delete(`/notifications/${notificationId}`);
+  // Delete a notification
+  deleteNotification: async (notificationId) => {
+    try {
+      const response = await api.delete(`/notifications/${notificationId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      throw error;
+    }
   },
   
+  // Get notification preferences
   getNotificationPreferences: async () => {
-    return api.get('/notifications/preferences');
+    try {
+      console.log('Fetching notification preferences');
+      const response = await api.get('/notifications/preferences');
+      console.log('Received notification preferences:', response.data);
+      return response;
+    } catch (error) {
+      console.error('Error fetching notification preferences:', error);
+      throw error;
+    }
   },
   
-  updateNotificationPreferences: async (notificationType: string, preferences: any) => {
-    return api.put(`/notifications/preferences/${notificationType}`, preferences);
+  // Update notification preferences for a specific type
+  updateNotificationPreferences: async (notificationType, preferences) => {
+    try {
+      console.log(`Updating ${notificationType} preferences:`, preferences);
+      
+      // Format the data to match what the backend expects
+      // The backend expects the exact structure in preferences
+      const response = await api.put(`/notifications/preferences/${notificationType}`, preferences);
+      console.log('Preference update response:', response.data);
+      return response;
+    } catch (error) {
+      console.error(`Error updating ${notificationType} preferences:`, error.response || error);
+      throw error;
+    }
   }
 };
-
 export default {
   auth: authAPI,
   user: userAPI,
@@ -310,4 +371,5 @@ export default {
   shop: shopAPI,
   notification: notificationAPI,
   userProfile: userProfileAPI,
+  export: exportAPI,
 };

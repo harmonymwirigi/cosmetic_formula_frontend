@@ -63,10 +63,15 @@ const OAuthCallback: React.FC = (): ReactElement => {
           
           const userData = response.data;
           addLog(`User data fetched successfully: ${JSON.stringify(userData)}`);
-          
+          const needsPhoneVerification = searchParams.get('needs_phone_verification') === 'True';
           // Use login instead of updateUser
           login(userData, token);
           
+          if (needsPhoneVerification) {
+            addLog('User needs phone verification, redirecting');
+            navigate('/verify-phone');
+            return;
+          }
           // Check if a plan was selected before authentication
           const selectedPlan = localStorage.getItem('selectedPlan');
           

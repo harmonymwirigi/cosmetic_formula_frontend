@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Header from '../partials/Header';
 import Sidebar from '../partials/Sidebar';
-import { userAPI, formulaAPI } from '../services/api';
+import { userAPI, formulaAPI, exportAPI } from '../services/api';
 import ProtectedRoute from '../components/shared/ProtectedRoute';
-
+import { toast } from 'react-toastify';
 function FormulaDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -167,12 +167,20 @@ function FormulaDetail() {
 
   // Export formula to PDF or other formats
   const handleExport = () => {
-    // In a real implementation, this would call an API endpoint to generate
-    // and download the formula in the selected format
-    alert(`Exporting formula as ${exportFormat}... (This is a placeholder)`);
-    setShowExportModal(false);
+    try {
+      // Call the API to export the formula in the selected format
+      exportAPI.exportFormula(id, exportFormat);
+      
+      // Close the modal after triggering the export
+      setShowExportModal(false);
+      
+      // Show a success message
+      toast.success(`Exporting formula as ${exportFormat.toUpperCase()}...`);
+    } catch (error) {
+      console.error('Failed to export formula:', error);
+      toast.error('Failed to export formula. Please try again.');
+    }
   };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
