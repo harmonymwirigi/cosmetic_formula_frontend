@@ -1,3 +1,4 @@
+// frontend/src/App.jsx
 import React, { useEffect } from 'react';
 import {
   Routes,
@@ -58,6 +59,9 @@ import NotificationsPage from './pages/NotificationsPage';
 import NotificationPreferencesPage from './pages/settings/NotificationPreferencesPage';
 import Apps from './pages/settings/Apps';
 import Plans from './pages/settings/Plans';
+import SubscriptionRedirect from './components/subscription/SubscriptionRedirect';
+import FormulaUsageCard from './components/Dashboard/FormulaUsageCard';
+import FormulaQuotaStatus from './components/Dashboard/FormulaQuotaStatus';
 import Billing from './pages/settings/Billing';
 import Feedback from './pages/settings/Feedback';
 import Changelog from './pages/utility/Changelog';
@@ -168,6 +172,7 @@ function App() {
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/settings/notifications" element={<NotificationPreferencesPage />} />
         <Route path="/settings/apps" element={<Apps />} />
+        <Route path="/subscription" element={<SubscriptionRedirect />} />
         <Route path="/settings/plans" element={<Plans />} />
         <Route path="/settings/billing" element={<Billing />} />
         <Route path="/settings/feedback" element={<Feedback />} />
@@ -225,7 +230,6 @@ function App() {
     </FormulaProvider>
   } />
   <Route path="/ingredients" element={<Ingredients />} />
-  <Route path="/subscription" element={<Subscription />} />
   <Route path="/subscription/success" element={<SubscriptionSuccess />} />
 <Route path="/subscription/cancel" element={<SubscriptionCancel />} />
         

@@ -1,8 +1,10 @@
+// frontend/src/pages/SubscriptionSuccess.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Header from '../partials/Header';
 import Sidebar from '../partials/Sidebar';
 import { paymentsAPI } from '../services/api';
+import { toast } from 'react-toastify';
 
 function SubscriptionSuccess() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,10 +34,27 @@ function SubscriptionSuccess() {
         const response = await paymentsAPI.verifySession(sessionId, subscriptionType);
         
         if (response.data.success) {
+          // Important: store updated user data in localStorage
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          
+          // Trigger storage event to refresh components
+          window.dispatchEvent(new Event('storage'));
+          
           setUserData(response.data.user);
           
-          // Determine subscription details for display
-          const plan = response.data.user.subscription_type;
+          // Map subscription types from backend to frontend display names
+          const planDisplayMap = {
+            'premium': 'Premium',
+            'professional': 'Professional',
+            'creator': 'Creator',
+            'pro_lab': 'Pro Lab',
+            'free': 'Free'
+          };
+          
+          // Get the plan display name
+          const planDisplay = planDisplayMap[response.data.user.subscription_type] || 
+                             response.data.user.subscription_type.charAt(0).toUpperCase() + 
+                             response.data.user.subscription_type.slice(1);
           
           // Properly handle the date parsing
           let expiresAt = null;
@@ -52,9 +71,8 @@ function SubscriptionSuccess() {
                 
                 // Determine billing cycle based on expiration date
                 // If it's more than ~11 months away, assume annual billing
-                billingCycle = (expiresAt.getTime() - new Date().getTime() > 31536000000 * 0.9) 
-                  ? 'annual' 
-                  : 'monthly';
+                const monthsDiff = (expiresAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 30);
+                billingCycle = monthsDiff > 11 ? 'annual' : 'monthly';
               } else {
                 console.error('Invalid date format received:', response.data.user.subscription_expires_at);
               }
@@ -64,10 +82,14 @@ function SubscriptionSuccess() {
           }
           
           setSubscriptionDetails({
-            plan,
+            plan: planDisplay,
+            planType: response.data.user.subscription_type,
             billingCycle,
             expiresAt: formattedDate
           });
+          
+          // Show successful toast notification
+          toast.success(`Subscription updated to ${planDisplay} plan!`);
           
           // Clear any stored plan info
           localStorage.removeItem('selectedPlan');
@@ -85,6 +107,58 @@ function SubscriptionSuccess() {
 
     verifySession();
   }, [location.search]);
+
+  // Get plan features based on subscription type
+  const getPlanFeatures = () => {
+    if (!subscriptionDetails) return [];
+    
+    const planFeatures = {
+      free: [
+        '3 formulas',
+        'Basic ingredients only',
+        'Limited AI recommendations',
+        'PDF export'
+      ],
+      premium: [
+        '30 formulas',
+        'All basic ingredients',
+        'Premium ingredients',
+        'Advanced AI recommendations',
+        'Multiple export formats',
+        'Formula version history'
+      ],
+      creator: [
+        '30 formulas',
+        'All basic ingredients',
+        'Premium ingredients',
+        'Advanced AI recommendations',
+        'Multiple export formats',
+        'Formula version history'
+      ],
+      professional: [
+        'Unlimited formulas',
+        'All basic ingredients',
+        'All premium ingredients',
+        'Professional ingredients',
+        'Advanced AI recommendations',
+        'Multiple export formats',
+        'Formula version history',
+        'Advanced formula analysis'
+      ],
+      pro_lab: [
+        'Unlimited formulas',
+        'All basic ingredients',
+        'All premium ingredients',
+        'Professional ingredients',
+        'Advanced AI recommendations',
+        'Multiple export formats',
+        'Formula version history',
+        'Advanced formula analysis'
+      ]
+    };
+    
+    return planFeatures[subscriptionDetails.planType.toLowerCase()] || [];
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -110,7 +184,7 @@ function SubscriptionSuccess() {
                   </svg>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Subscription Error</h2>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
-                  <Link to="/subscription" className="inline-flex items-center px-4 py-2 bg-violet-600 border border-transparent rounded-md font-semibold text-white hover:bg-violet-700">
+                  <Link to="/settings/plans" className="inline-flex items-center px-4 py-2 bg-violet-600 border border-transparent rounded-md font-semibold text-white hover:bg-violet-700">
                     Return to Subscription Page
                   </Link>
                 </div>
@@ -132,7 +206,7 @@ function SubscriptionSuccess() {
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="text-left text-gray-500 dark:text-gray-400">Plan:</div>
                         <div className="text-right font-medium text-gray-900 dark:text-gray-100">
-                          {subscriptionDetails.plan === 'premium' ? 'Premium' : 'Professional'}
+                          {subscriptionDetails.plan}
                         </div>
                         <div className="text-left text-gray-500 dark:text-gray-400">Billing Cycle:</div>
                         <div className="text-right font-medium text-gray-900 dark:text-gray-100">
@@ -142,6 +216,18 @@ function SubscriptionSuccess() {
                         <div className="text-right font-medium text-gray-900 dark:text-gray-100">
                           {subscriptionDetails.expiresAt}
                         </div>
+                      </div>
+                      
+                      {/* Show plan features */}
+                      <div className="mt-4 text-left">
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Plan Features:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {getPlanFeatures().map((feature, index) => (
+                            <li key={index} className="text-gray-600 dark:text-gray-400 text-sm">
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
                   )}

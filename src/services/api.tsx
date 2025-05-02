@@ -89,6 +89,7 @@ export const paymentsAPI = {
   }
 };
 // User API
+
 export const userAPI = {
   getUserStatus: () => {
     return api.get('/users/status');
@@ -96,8 +97,16 @@ export const userAPI = {
   updateSubscription: (data: { subscription_type: string }) => {
     return api.post('/users/subscription', data);
   },
+  getFormulaUsage: () => {
+    return api.get('/users/formula-usage');
+  },
+  getCurrentUser: () => {
+    return api.get('/users/me');
+  },
+  updateProfile: (userData) => {
+    return api.put('/users/me', userData);
+  },
 };
-
 export const exportAPI = {
   exportFormula: (id, format) => {
     // Use a direct window location change for file downloads
