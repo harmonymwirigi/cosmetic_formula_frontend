@@ -50,7 +50,7 @@ const PhoneVerification = () => {
       
       // Redirect based on subscription status
       if (user?.needs_subscription) {
-        navigate('/plan-selection');
+        navigate('/');
       } else {
         navigate('/');
       }

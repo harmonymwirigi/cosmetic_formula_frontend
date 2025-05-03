@@ -82,7 +82,7 @@ const OAuthCallback: React.FC = (): ReactElement => {
               navigate(`/subscribe?plan=${selectedPlan}`);
             } else if (userData.needs_subscription) {
               addLog('User needs subscription, navigating to plan selection');
-              navigate('/plan-selection');
+              navigate('/');
             } else {
               addLog('User has subscription, navigating to dashboard');
               navigate('/');
