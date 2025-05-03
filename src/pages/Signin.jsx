@@ -19,7 +19,7 @@ function Signin() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      navigate('/dashboard');
+      navigate('/');
     }
   }, [navigate]);
 
@@ -85,7 +85,7 @@ const handleGoogleSignIn = () => {
       localStorage.setItem('user', JSON.stringify(data.user));
       
       // Redirect to dashboard or home page
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       // Handle login error
       setError(err.message);

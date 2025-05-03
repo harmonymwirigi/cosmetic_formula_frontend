@@ -1,4 +1,4 @@
-// frontend/src/components/Dashboard/FormulaQuotaStatus.jsx
+// frontend/src/components/FormulaQuotaStatus.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';

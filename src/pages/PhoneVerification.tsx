@@ -52,7 +52,7 @@ const PhoneVerification = () => {
       if (user?.needs_subscription) {
         navigate('/plan-selection');
       } else {
-        navigate('/dashboard');
+        navigate('/');
       }
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to verify code');
