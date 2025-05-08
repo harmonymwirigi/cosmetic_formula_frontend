@@ -5,6 +5,10 @@ import Sidebar from '../partials/Sidebar';
 import { userAPI, formulaAPI, exportAPI } from '../services/api';
 import ProtectedRoute from '../components/shared/ProtectedRoute';
 import { toast } from 'react-toastify';
+import FormulaDocumentationTab from '../components/Formula/FormulaDocumentationTab';
+import SyncNotionButton from '../components/Formula/SyncNotionButton';
+import InciListGenerator from '../components/Formulas/InciListGenerator';
+
 function FormulaDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -116,7 +120,9 @@ function FormulaDetail() {
         description: editedFormula.description,
         type: editedFormula.type,
         is_public: editedFormula.is_public,
-        total_weight: editedFormula.total_weight
+        total_weight: editedFormula.total_weight,
+        msds: editedFormula.msds,
+        sop: editedFormula.sop
       });
       
       // Update ingredients
@@ -142,9 +148,11 @@ function FormulaDetail() {
       const formulaResponse = await formulaAPI.getFormula(id);
       setFormula(formulaResponse.data);
       setIsEditing(false);
+      
+      toast.success("Formula saved successfully!");
     } catch (error) {
       console.error('Failed to save formula:', error);
-      alert('Failed to save changes. Please try again.');
+      toast.error('Failed to save changes. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -160,7 +168,7 @@ function FormulaDetail() {
       }
     } catch (error) {
       console.error('Failed to duplicate formula:', error);
-      alert('Failed to duplicate formula. Please try again.');
+      toast.error('Failed to duplicate formula. Please try again.');
       setLoading(false);
     }
   };
@@ -181,6 +189,7 @@ function FormulaDetail() {
       toast.error('Failed to export formula. Please try again.');
     }
   };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -266,6 +275,9 @@ function FormulaDetail() {
                 <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
                   {!isEditing ? (
                     <>
+                      {/* Notion Sync Button */}
+                      <SyncNotionButton formulaId={id} />
+                      
                       <button
                         onClick={() => setShowExportModal(true)}
                         className="btn bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-300"
@@ -334,7 +346,7 @@ function FormulaDetail() {
               <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
                 {/* Tabs */}
                 <div className="border-b border-gray-200 dark:border-gray-700">
-                  <nav className="flex -mb-px px-4">
+                  <nav className="flex -mb-px px-4 overflow-x-auto">
                     <button
                       className={`text-sm font-medium py-4 px-1 border-b-2 whitespace-nowrap ${
                         activeTab === 'overview'
@@ -375,6 +387,26 @@ function FormulaDetail() {
                     >
                       Batch Calculator
                     </button>
+                    <button
+                      className={`text-sm font-medium py-4 px-1 border-b-2 ml-6 whitespace-nowrap ${
+                        activeTab === 'documentation'
+                          ? 'border-violet-500 dark:border-violet-400 text-violet-600 dark:text-violet-400'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                      }`}
+                      onClick={() => setActiveTab('documentation')}
+                    >
+                      Documentation
+                    </button>
+                    <button
+                      className={`text-sm font-medium py-4 px-1 border-b-2 ml-6 whitespace-nowrap ${
+                        activeTab === 'inci'
+                          ? 'border-violet-500 dark:border-violet-400 text-violet-600 dark:text-violet-400'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                      }`}
+                      onClick={() => setActiveTab('inci')}
+                    >
+                      INCI List
+                  </button>
                   </nav>
                 </div>
 
@@ -852,6 +884,17 @@ function FormulaDetail() {
                       )}
                     </div>
                   )}
+
+                  {/* Documentation Tab (MSDS & SOP) */}
+                  {activeTab === 'documentation' && (
+                    <FormulaDocumentationTab formula={formula} />
+                  )}
+                  {activeTab === 'inci' && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">INCI List</h3>
+                      <InciListGenerator formulaId={id} />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -931,7 +974,6 @@ function FormulaDetail() {
       )}
     </ProtectedRoute>
   );
-
-};
+}
 
 export default FormulaDetail;

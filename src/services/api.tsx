@@ -107,14 +107,37 @@ export const userAPI = {
     return api.put('/users/me', userData);
   },
 };
+
+
 export const exportAPI = {
   exportFormula: (id, format) => {
-    // Use a direct window location change for file downloads
-    window.location.href = `${api.defaults.baseURL}/export/${id}/export?format=${format}`;
-    return Promise.resolve({ success: true }); // Return a resolved promise for consistency
+    // Get the token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Create a direct download by opening a new window with the token in the URL
+    window.open(`${api.defaults.baseURL}/formulas/${id}/export?format=${format}&token=${token}`, '_blank');
+    
+    return Promise.resolve({ success: true });
   },
 };
-
+// Notion API functions
+export const notionAPI = {
+  getStatus: () => {
+    return api.get('/notion/status');
+  },
+  connect: (data) => {
+    return api.post('/notion/connect', data);
+  },
+  disconnect: () => {
+    return api.delete('/notion/disconnect');
+  },
+  syncFormula: (formulaId) => {
+    return api.post(`/notion/sync-formula/${formulaId}`);
+  },
+  syncAll: () => {
+    return api.post('/notion/sync-all');
+  }
+};
 // Formulas API
 export const formulaAPI = {
 // In your formulaAPI object
@@ -131,10 +154,15 @@ getFormulas: async () => {
   duplicateFormula: (id: number, newName?: string) => {
     return api.post(`/formulas/duplicate/${id}`, { new_name: newName });
   },
+  getInciList: (id, highlightAllergens = false) => {
+    return api.get(`/formulas/${id}/inci-list?highlight_allergens=${highlightAllergens}`);
+  },
   updateFormulaIngredients: (id: number, data: any) => {
     return api.put(`/formulas/${id}/ingredients`, data);
   },
-  
+  update_formula_documentation: (id, data) => {
+    return api.put(`/formulas/${id}/documentation`, data);
+  },
   updateFormulaSteps: (id: number, data: any) => {
     return api.put(`/formulas/${id}/steps`, data);
   },
@@ -381,4 +409,5 @@ export default {
   notification: notificationAPI,
   userProfile: userProfileAPI,
   export: exportAPI,
+  notion: notionAPI,
 };
