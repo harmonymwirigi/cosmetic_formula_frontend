@@ -107,6 +107,7 @@ import Orders from './pages/shop/Orders';
 import OrderDetail from './pages/shop/OrderDetail';
 import OrderConfirmation from './pages/shop/OrderConfirmation'
 import TermsAndConditions from './pages/TermsAndConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 function App() {
 
   const location = useLocation();
@@ -126,6 +127,7 @@ function App() {
         {/* Homepage Route - Changed from Dashboard to Homepage */}
         <Route exact path="/" element={<Homepage />} />
         <Route path="/terms" element={<TermsAndConditions />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         {/* Dashboard Route - Now separate from homepage */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
