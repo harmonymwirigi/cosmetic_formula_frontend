@@ -7,6 +7,7 @@ import {
 } from 'react-router-dom';
 
 import './css/style.css';
+import Homepage from './pages/Homepage'; // Add this import
 import FormulaCreation from './pages/FormulaCreation';
 import Formulas from './pages/Formulas';
 import FormulaDetail from './pages/FormulaDetail';
@@ -105,6 +106,7 @@ import ProductView from './pages/shop/ProductView';
 import Orders from './pages/shop/Orders';
 import OrderDetail from './pages/shop/OrderDetail';
 import OrderConfirmation from './pages/shop/OrderConfirmation'
+import TermsAndConditions from './pages/TermsAndConditions';
 function App() {
 
   const location = useLocation();
@@ -121,7 +123,16 @@ function App() {
       <NotificationProvider>
       <UserProfileProvider>
       <Routes>
-        <Route exact path="/" element={<Dashboard />} />
+        {/* Homepage Route - Changed from Dashboard to Homepage */}
+        <Route exact path="/" element={<Homepage />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
+        {/* Dashboard Route - Now separate from homepage */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        
         <Route path="/notifications" element={
   <ProtectedRoute>
     <NotificationsPage />
@@ -132,11 +143,27 @@ function App() {
     <NotificationPreferencesPage />
   </ProtectedRoute>
 } />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/dashboard/fintech" element={<Fintech />} />
-        <Route path="/ecommerce/customers" element={<Customers />} />
+        <Route path="/analytics" element={
+          <ProtectedRoute>
+            <Analytics />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard/fintech" element={
+          <ProtectedRoute>
+            <Fintech />
+          </ProtectedRoute>
+        } />
+        <Route path="/ecommerce/customers" element={
+          <ProtectedRoute>
+            <Customers />
+          </ProtectedRoute>
+        } />
         {/* <Route path="/ecommerce/orders" element={<Orders />} /> */}
-        <Route path="/ecommerce/invoices" element={<Invoices />} />
+        <Route path="/ecommerce/invoices" element={
+          <ProtectedRoute>
+            <Invoices />
+          </ProtectedRoute>
+        } />
         <Route path="/ecommerce/shop" element={<Shop />} />
         <Route path="/ecommerce/shop-2" element={<Shop2 />} />
         <Route path="/ecommerce/product" element={<Product />} />
@@ -144,38 +171,162 @@ function App() {
         <Route path="/ecommerce/cart-2" element={<Cart2 />} />
         <Route path="/ecommerce/cart-3" element={<Cart3 />} />
         <Route path="/ecommerce/pay" element={<Pay />} />
-        <Route path="/verify-phone" element={<PhoneVerification />} />
-        <Route path="/campaigns" element={<Campaigns />} />
-        <Route path="/community/users-tabs" element={<UsersTabs />} />
-        <Route path="/community/users-tiles" element={<UsersTiles />} />
-        <Route path="/community/profile" element={<Profile />} />
-        <Route path="/community/feed" element={<Feed />} />
-        <Route path="/community/forum" element={<Forum />} />
-        <Route path="/community/forum-post" element={<ForumPost />} />
-        <Route path="/community/meetups" element={<Meetups />} />
-        <Route path="/community/meetups-post" element={<MeetupsPost />} />
-        <Route path="/finance/cards" element={<CreditCards />} />
-        <Route path="/finance/transactions" element={<Transactions />} />
-        <Route path="/finance/transaction-details" element={<TransactionDetails />} />
-        <Route path="/job/job-listing" element={<JobListing />} />
-        <Route path="/job/job-post" element={<JobPost />} />
-        <Route path="/job/company-profile" element={<CompanyProfile />} />
-        <Route path="/profile/edit" element={<UserProfileForm />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/tasks/kanban" element={<TasksKanban />} />
-        <Route path="/tasks/list" element={<TasksList />} />
-        <Route path="/inbox" element={<Inbox />} />
-        <Route path="/calendar" element={<Calendar />} />
-        <Route path="/settings/account" element={<Account />} />
-        <Route path="/settings/addresses" element={<Addresses />} />
-        <Route path="/settings/notifications" element={<Notifications />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/settings/notifications" element={<NotificationPreferencesPage />} />
-        <Route path="/settings/apps" element={<Apps />} />
+        <Route path="/verify-phone" element={
+          <ProtectedRoute>
+            <PhoneVerification />
+          </ProtectedRoute>
+        } />
+        <Route path="/campaigns" element={
+          <ProtectedRoute>
+            <Campaigns />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/users-tabs" element={
+          <ProtectedRoute>
+            <UsersTabs />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/users-tiles" element={
+          <ProtectedRoute>
+            <UsersTiles />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/feed" element={
+          <ProtectedRoute>
+            <Feed />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/forum" element={
+          <ProtectedRoute>
+            <Forum />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/forum-post" element={
+          <ProtectedRoute>
+            <ForumPost />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/meetups" element={
+          <ProtectedRoute>
+            <Meetups />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/meetups-post" element={
+          <ProtectedRoute>
+            <MeetupsPost />
+          </ProtectedRoute>
+        } />
+        <Route path="/finance/cards" element={
+          <ProtectedRoute>
+            <CreditCards />
+          </ProtectedRoute>
+        } />
+        <Route path="/finance/transactions" element={
+          <ProtectedRoute>
+            <Transactions />
+          </ProtectedRoute>
+        } />
+        <Route path="/finance/transaction-details" element={
+          <ProtectedRoute>
+            <TransactionDetails />
+          </ProtectedRoute>
+        } />
+        <Route path="/job/job-listing" element={
+          <ProtectedRoute>
+            <JobListing />
+          </ProtectedRoute>
+        } />
+        <Route path="/job/job-post" element={
+          <ProtectedRoute>
+            <JobPost />
+          </ProtectedRoute>
+        } />
+        <Route path="/job/company-profile" element={
+          <ProtectedRoute>
+            <CompanyProfile />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile/edit" element={
+          <ProtectedRoute>
+            <UserProfileForm />
+          </ProtectedRoute>
+        } />
+        <Route path="/messages" element={
+          <ProtectedRoute>
+            <Messages />
+          </ProtectedRoute>
+        } />
+        <Route path="/tasks/kanban" element={
+          <ProtectedRoute>
+            <TasksKanban />
+          </ProtectedRoute>
+        } />
+        <Route path="/tasks/list" element={
+          <ProtectedRoute>
+            <TasksList />
+          </ProtectedRoute>
+        } />
+        <Route path="/inbox" element={
+          <ProtectedRoute>
+            <Inbox />
+          </ProtectedRoute>
+        } />
+        <Route path="/calendar" element={
+          <ProtectedRoute>
+            <Calendar />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings/account" element={
+          <ProtectedRoute>
+            <Account />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings/addresses" element={
+          <ProtectedRoute>
+            <Addresses />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings/notifications" element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        } />
+        <Route path="/notifications" element={
+          <ProtectedRoute>
+            <NotificationsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings/notifications" element={
+          <ProtectedRoute>
+            <NotificationPreferencesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings/apps" element={
+          <ProtectedRoute>
+            <Apps />
+          </ProtectedRoute>
+        } />
         <Route path="/subscription" element={<SubscriptionRedirect />} />
-        <Route path="/settings/plans" element={<Plans />} />
-        <Route path="/settings/billing" element={<Billing />} />
-        <Route path="/settings/feedback" element={<Feedback />} />
+        <Route path="/settings/plans" element={
+          <ProtectedRoute>
+            <Plans />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings/billing" element={
+          <ProtectedRoute>
+            <Billing />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings/feedback" element={
+          <ProtectedRoute>
+            <Feedback />
+          </ProtectedRoute>
+        } />
         <Route path="/utility/changelog" element={<Changelog />} />
         <Route path="/utility/roadmap" element={<Roadmap />} />
         <Route path="/utility/faqs" element={<Faqs />} />
@@ -217,21 +368,34 @@ function App() {
         <Route path="/shop/orders/:orderId" element={<OrderDetail />} />
         <Route path="/shop/orders/:orderId/confirmation" element={<OrderConfirmation />} />
         <Route path="/shop/orders" element={<Orders />} />
+        
         {/* Cosmetic Formula Lab Routes */}
         <Route path="/formulas/create" element={
-    <FormulaProvider>
-      <FormulaCreation />
-    </FormulaProvider>
-  } />
-  <Route path="/formulas" element={<Formulas />} />
-  <Route path="/formulas/:id" element={
-    <FormulaProvider>
-      <FormulaDetail />
-    </FormulaProvider>
-  } />
-  <Route path="/ingredients" element={<Ingredients />} />
-  <Route path="/subscription/success" element={<SubscriptionSuccess />} />
-<Route path="/subscription/cancel" element={<SubscriptionCancel />} />
+          <ProtectedRoute>
+            <FormulaProvider>
+              <FormulaCreation />
+            </FormulaProvider>
+          </ProtectedRoute>
+        } />
+        <Route path="/formulas" element={
+          <ProtectedRoute>
+            <Formulas />
+          </ProtectedRoute>
+        } />
+        <Route path="/formulas/:id" element={
+          <ProtectedRoute>
+            <FormulaProvider>
+              <FormulaDetail />
+            </FormulaProvider>
+          </ProtectedRoute>
+        } />
+        <Route path="/ingredients" element={
+          <ProtectedRoute>
+            <Ingredients />
+          </ProtectedRoute>
+        } />
+        <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+        <Route path="/subscription/cancel" element={<SubscriptionCancel />} />
         
         {/* Catch-all route for 404 */}
         <Route path="*" element={<PageNotFound />} />

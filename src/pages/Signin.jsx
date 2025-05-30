@@ -1,4 +1,4 @@
-// Signin.jsx
+// Updated Signin.jsx with proper redirect handling
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from 'react-router-dom';
@@ -19,7 +19,8 @@ function Signin() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      navigate('/');
+      // Redirect to dashboard instead of homepage
+      navigate('/dashboard');
     }
   }, [navigate]);
 
@@ -55,6 +56,7 @@ const handleGoogleSignIn = () => {
   console.log("Redirecting to:", googleLoginUrl);
   window.location.href = googleLoginUrl;
 };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -84,8 +86,8 @@ const handleGoogleSignIn = () => {
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
-      // Redirect to dashboard or home page
-      navigate('/');
+      // Redirect to dashboard instead of homepage
+      navigate('/dashboard');
     } catch (err) {
       // Handle login error
       setError(err.message);

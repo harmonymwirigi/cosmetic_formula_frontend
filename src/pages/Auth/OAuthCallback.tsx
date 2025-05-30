@@ -1,4 +1,4 @@
-// frontend/src/pages/Auth/OAuthCallback.tsx
+// frontend/src/pages/Auth/OAuthCallback.tsx - Updated with dashboard redirect
 import React, { useEffect, useState, ReactElement } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -64,6 +64,7 @@ const OAuthCallback: React.FC = (): ReactElement => {
           const userData = response.data;
           addLog(`User data fetched successfully: ${JSON.stringify(userData)}`);
           const needsPhoneVerification = searchParams.get('needs_phone_verification') === 'True';
+          
           // Use login instead of updateUser
           login(userData, token);
           
@@ -72,24 +73,27 @@ const OAuthCallback: React.FC = (): ReactElement => {
             navigate('/verify-phone');
             return;
           }
+          
           // Check if a plan was selected before authentication
           const selectedPlan = localStorage.getItem('selectedPlan');
           
-          // Decide where to navigate
+          // Decide where to navigate - Updated to redirect to dashboard
           setTimeout(() => {
             if (selectedPlan && selectedPlan !== 'free') {
               addLog(`Found selected plan: ${selectedPlan}, redirecting to subscription`);
               navigate(`/subscribe?plan=${selectedPlan}`);
             } else if (userData.needs_subscription) {
-              addLog('User needs subscription, navigating to plan selection');
-              navigate('/');
+              addLog('User needs subscription, navigating to dashboard');
+              navigate('/dashboard'); // Changed from '/' to '/dashboard'
             } else {
               addLog('User has subscription, navigating to dashboard');
-              navigate('/');
+              navigate('/dashboard'); // Changed from '/' to '/dashboard'
             }
           }, 300);
         } catch (apiError: any) {
-          // ...error handling...
+          addLog(`Error fetching user data: ${apiError.response?.data?.detail || apiError.message}`);
+          setError('Failed to fetch user data. Please try signing in again.');
+          setIsLoading(false);
         }
       } catch (err: any) {
         addLog(`Unexpected error in OAuth callback: ${err.message}`);
@@ -134,7 +138,7 @@ const OAuthCallback: React.FC = (): ReactElement => {
             <p className="mt-2 text-sm text-gray-500">{error}</p>
             <div className="mt-6">
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/signin')}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
               >
                 Return to Login
