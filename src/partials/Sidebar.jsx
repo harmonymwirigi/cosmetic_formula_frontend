@@ -168,7 +168,7 @@ function Sidebar({
           
           {/* Dashboard */}
           <NavLink
-            to="/"
+            to="/dashboard"
             className={({ isActive }) => 
               `flex items-center p-2 rounded-lg group ${
                 isActive

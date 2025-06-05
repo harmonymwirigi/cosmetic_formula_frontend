@@ -189,6 +189,7 @@ getFormulas: async () => {
 
 // AI Formula API
 export const aiFormulaAPI = {
+  // Existing generateFormula method (keep this for backward compatibility)
   generateFormula: (data) => {
     // Convert nested product_type object to flat structure if needed
     const requestData = { ...data };
@@ -199,6 +200,17 @@ export const aiFormulaAPI = {
     // Make the request
     return api.post('/ai-formula/generate_formula', requestData);
   },
+  
+  // NEW: Generate formula from questionnaire
+  generateFormulaFromQuestionnaire: (data) => {
+    // Log the request for debugging
+    console.log("AI Formula questionnaire request data:", data);
+    
+    // Make the request to the new endpoint
+    return api.post('/ai-formula/generate_formula_questionnaire', data);
+  },
+  
+  // Existing methods (keep these)
   analyzeIngredients: (data) => {
     return api.post('/ai-formula/analyze', data);
   },

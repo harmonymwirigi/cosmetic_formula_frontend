@@ -1,18 +1,11 @@
-// frontend/src/components/FormulaWizard.jsx
-import React, { useState, useEffect, useRef } from 'react';
+// frontend/src/components/formulas/FormulaQuestionnaire.jsx
+import React, { useState, useEffect } from 'react';
 import { useFormula } from '../../context/FormulaContext';
 import { useNavigate } from 'react-router-dom';
-import { aiFormulaAPI } from '../../services/api'; // Import the API service
 
-/**
- * FormulaWizard component - Complete questionnaire-based formula creation
- * 
- * This component replaces the traditional multi-step wizard with a comprehensive
- * questionnaire that generates both the formula name and complete formulation using AI.
- */
-const FormulaWizard = () => {
+const FormulaQuestionnaire = () => {
   const navigate = useNavigate();
-  const { isLoading } = useFormula();
+  const { generateAIFormula, isLoading } = useFormula();
   
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
@@ -40,10 +33,7 @@ const FormulaWizard = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [generatedFormulaId, setGeneratedFormulaId] = useState(null);
-  const previousProductTypeRef = useRef('');
 
-  // Step configuration
   const steps = [
     {
       title: "Purpose",
@@ -141,7 +131,6 @@ const FormulaWizard = () => {
     setIsGenerating(true);
     setError('');
     setSuccess('');
-    setGeneratedFormulaId(null);
 
     try {
       // Transform questionnaire data for the new API endpoint
@@ -162,50 +151,39 @@ const FormulaWizard = () => {
         generate_name: true
       };
 
-      console.log('Submitting questionnaire data:', questionnaireRequest);
+      // Call the new questionnaire-based API endpoint
+      const response = await fetch('/api/ai-formula/generate_formula_questionnaire', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth setup
+        },
+        body: JSON.stringify(questionnaireRequest)
+      });
 
-      // Call the new questionnaire-based API endpoint using your API service
-      const response = await aiFormulaAPI.generateFormulaFromQuestionnaire(questionnaireRequest);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to generate formula');
+      }
+
+      const formulaData = await response.json();
       
-      if (response && response.data && response.data.id) {
-        setGeneratedFormulaId(response.data.id);
-        setSuccess(`Formula "${response.data.name}" created successfully!`);
+      if (formulaData && formulaData.id) {
+        setSuccess(`Formula "${formulaData.name}" created successfully!`);
+        setTimeout(() => {
+          navigate(`/formulas/${formulaData.id}`);
+        }, 2000);
       } else {
         setSuccess('Formula created successfully!');
+        setTimeout(() => {
+          navigate('/formulas');
+        }, 2000);
       }
     } catch (error) {
       console.error('Error creating formula:', error);
-      
-      // Enhanced error handling
-      let errorMessage = 'Failed to create formula. Please try again.';
-      
-      if (error.response) {
-        console.error('Error response data:', error.response.data);
-        console.error('Error response status:', error.response.status);
-        
-        if (error.response.data && error.response.data.detail) {
-          if (Array.isArray(error.response.data.detail)) {
-            // Handle validation error array - common in FastAPI 422 errors
-            errorMessage = error.response.data.detail
-              .map(err => err.msg || JSON.stringify(err))
-              .join(', ');
-          } else {
-            errorMessage = error.response.data.detail;
-          }
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setError(errorMessage);
+      setError(error.message || 'Failed to create formula. Please try again.');
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const handleViewFormulaDetails = () => {
-    if (generatedFormulaId) {
-      navigate(`/formulas/${generatedFormulaId}`);
     }
   };
 
@@ -686,204 +664,140 @@ const FormulaWizard = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 px-6 py-8 border-b border-gray-200 dark:border-gray-700">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
             🌿 BeautyCraft Product Creation
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Your AI-Powered Companion to Crafting the Perfect Formula
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Your AI-Powered Companion to Crafting the Perfect Skincare or Haircare Product
           </p>
         </div>
-      </div>
 
-      {/* Progress Bar */}
-      <div className="px-6 py-4 bg-gray-50 dark:bg-gray-750">
-        <div className="flex items-center justify-between mb-4">
-          {steps.map((step, index) => (
-            <div key={index} className="flex flex-col items-center flex-1">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 ${
-                index < currentStep
-                  ? 'bg-violet-500 text-white'
-                  : index === currentStep
-                    ? 'bg-violet-100 dark:bg-violet-900 text-violet-600 dark:text-violet-400 border-2 border-violet-500'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-              }`}>
-                {index < currentStep ? '✓' : step.icon}
-              </div>
-              <div className="hidden md:block mt-2 text-xs text-center max-w-20">
-                <div className={`font-medium ${
-                  index === currentStep ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500 dark:text-gray-400'
+        {/* Progress Bar */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="flex items-center justify-between mb-4">
+            {steps.map((step, index) => (
+              <div key={index} className="flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 ${
+                  index < currentStep
+                    ? 'bg-violet-500 text-white'
+                    : index === currentStep
+                      ? 'bg-violet-100 dark:bg-violet-900 text-violet-600 dark:text-violet-400 border-2 border-violet-500'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                 }`}>
-                  {step.title}
+                  {index < currentStep ? '✓' : step.icon}
                 </div>
-                <div className="text-gray-400 dark:text-gray-500 text-xs">
-                  {step.subtitle}
+                <div className="hidden md:block mt-2 text-xs text-center">
+                  <div className={`font-medium ${
+                    index === currentStep ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500 dark:text-gray-400'
+                  }`}>
+                    {step.title}
+                  </div>
+                  <div className="text-gray-400 dark:text-gray-500 text-xs">
+                    {step.subtitle}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-        
-        {/* Progress line */}
-        <div className="relative">
-          <div className="absolute top-0 left-0 h-1 bg-gray-200 dark:bg-gray-700 w-full rounded-full"></div>
-          <div 
-            className="absolute top-0 left-0 h-1 bg-violet-500 rounded-full transition-all duration-500"
-            style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <div className="mx-6 mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-            </div>
+            ))}
+          </div>
+          
+          {/* Progress line */}
+          <div className="relative">
+            <div className="absolute top-0 left-0 h-1 bg-gray-200 dark:bg-gray-700 w-full rounded-full"></div>
+            <div 
+              className="absolute top-0 left-0 h-1 bg-violet-500 rounded-full transition-all duration-500"
+              style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+            ></div>
           </div>
         </div>
-      )}
 
-      {/* Success Display */}
-      {success && (
-        <div className="mx-6 mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-green-600 dark:text-green-400">{success}</p>
-              
-              {generatedFormulaId && (
-                <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={handleViewFormulaDetails}
-                    className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none"
-                  >
-                    <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    View Formula Details
-                  </button>
-                  
-                  <button
-                    onClick={() => navigate('/formulas')}
-                    className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none"
-                  >
-                    <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                    View All Formulas
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Step Content */}
-      <div className="p-6">
-        {renderStepContent()}
-      </div>
-
-      {/* Navigation */}
-      <div className="px-6 py-4 bg-gray-50 dark:bg-gray-750 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-        <button
-          onClick={handlePrevious}
-          disabled={currentStep === 0}
-          className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center ${
-            currentStep === 0
-              ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-          }`}
-        >
-          <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          Previous
-        </button>
-
-        <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-          <span>{currentStep + 1}</span>
-          <span>of</span>
-          <span>{steps.length}</span>
-        </div>
-
-        {currentStep === steps.length - 1 ? (
-          <button
-            onClick={handleSubmit}
-            disabled={isGenerating || !isStepValid()}
-            className={`px-8 py-3 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 ${
-              isGenerating || !isStepValid()
-                ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-violet-500 to-indigo-600 text-white hover:from-violet-600 hover:to-indigo-700'
-            }`}
-          >
-            {isGenerating ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Creating Your Formula...</span>
-              </>
-            ) : (
-              <>
-                <span>✨ Create My Formula</span>
-              </>
+        {/* Main Content */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8">
+            {/* Error Display */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-red-600 dark:text-red-400">{error}</p>
+              </div>
             )}
-          </button>
-        ) : (
-          <button
-            onClick={handleNext}
-            disabled={!isStepValid()}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center ${
-              isStepValid()
-                ? 'bg-violet-500 hover:bg-violet-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Next
-            <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        )}
-      </div>
 
-      {/* Footer Information */}
-      <div className="px-6 py-4 bg-gray-50 dark:bg-gray-750 text-center border-t border-gray-200 dark:border-gray-700">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          ✨ Powered by AI • Crafted with love • Made for you
-        </p>
-        
-        {/* Optional explanation/tips */}
-        <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400">
-          <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">How AI Formula Generation Works</h4>
-          <ul className="list-disc pl-5 space-y-1 text-left">
-            <li>Our AI analyzes your questionnaire responses and preferences</li>
-            <li>It creates a unique product name that reflects your goals and brand vision</li>
-            <li>The formula is optimized for your specific needs, skin type, and desired experience</li>
-            <li>You receive a complete formulation with ingredients, percentages, and manufacturing steps</li>
-            <li>All formulas include safety documentation (MSDS) and manufacturing procedures (SOP)</li>
-          </ul>
+            {/* Success Display */}
+            {success && (
+              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <p className="text-green-600 dark:text-green-400">{success}</p>
+              </div>
+            )}
+
+            {/* Step Content */}
+            {renderStepContent()}
+          </div>
+
+          {/* Navigation */}
+          <div className="flex justify-between items-center">
+            <button
+              onClick={handlePrevious}
+              disabled={currentStep === 0}
+              className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                currentStep === 0
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+              }`}
+            >
+              ← Previous
+            </button>
+
+            <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+              <span>{currentStep + 1}</span>
+              <span>of</span>
+              <span>{steps.length}</span>
+            </div>
+
+            {currentStep === steps.length - 1 ? (
+              <button
+                onClick={handleSubmit}
+                disabled={isGenerating}
+                className="px-8 py-3 bg-gradient-to-r from-violet-500 to-indigo-600 text-white rounded-xl font-medium hover:from-violet-600 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {isGenerating ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Creating Your Formula...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>✨ Create My Formula</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={handleNext}
+                disabled={!isStepValid()}
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                  isStepValid()
+                    ? 'bg-violet-500 hover:bg-violet-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                Next →
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-12 text-gray-500 dark:text-gray-400 text-sm">
+          <p>✨ Powered by AI • Crafted with love • Made for you</p>
         </div>
       </div>
     </div>
   );
 };
 
-export default FormulaWizard;
+export default FormulaQuestionnaire;

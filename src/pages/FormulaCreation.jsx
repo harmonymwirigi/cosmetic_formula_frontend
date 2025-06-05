@@ -8,8 +8,8 @@ import ProtectedRoute from '../components/shared/ProtectedRoute';
 import { userAPI, formulaAPI } from '../services/api';
 
 /**
- * FormulaCreation page - Main page for creating a new formula
- * Integrates the FormulaWizard component with the app layout
+ * FormulaCreation page - Redesigned for questionnaire-based formula creation
+ * Now focuses on AI-powered formula generation through comprehensive questionnaire
  */
 const FormulaCreation = () => {
   const navigate = useNavigate();
@@ -49,7 +49,6 @@ const FormulaCreation = () => {
           try {
             setLoadingRecentFormulas(true);
             const formulasResponse = await formulaAPI.getFormulas();
-            // Add this defensive check
             if (formulasResponse && formulasResponse.data && Array.isArray(formulasResponse.data)) {
               setRecentFormulas(formulasResponse.data.slice(0, 3));
             } else {
@@ -122,51 +121,183 @@ const FormulaCreation = () => {
                           You have reached the limit of 3 formulas on the free plan. 
                           <Link to="/subscription" className="font-medium underline ml-1">
                             Upgrade your subscription
-                          </Link> to create more formulas.
+                          </Link> to create unlimited formulas with AI-powered names and advanced features.
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Page header */}
+                {/* Enhanced Page Header */}
                 <div className="mb-8">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div className="mb-4 sm:mb-0">
-                      <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Create Formula</h1>
-                      <p className="text-gray-600 dark:text-gray-400 mt-1">
-                        Design your custom cosmetic formula with our step-by-step wizard
+                      <h1 className="text-3xl md:text-4xl text-gray-800 dark:text-gray-100 font-bold">
+                        Create Your Perfect Formula ✨
+                      </h1>
+                      <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
+                        Answer our smart questionnaire and let AI craft a personalized formula with the perfect name and ingredients for your needs.
                       </p>
                     </div>
-                    <div className="flex space-x-3">
-                      <Link 
-                        to="/formulas"
-                        className="btn bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-300"
-                      >
-                        <svg className="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
-                          <path d="M9.4 13.4l1.4-1.4-4-4 4-4-1.4-1.4L4 8z"></path>
-                        </svg>
-                        <span className="ml-2">Back to Formulas</span>
-                      </Link>
-                      <Link 
-                        to="/ai-formula-generator"
-                        className="btn bg-violet-500 hover:bg-violet-600 text-white"
-                      >
-                        <svg className="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
-                          <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
-                        </svg>
-                        <span className="ml-2">AI Assistant</span>
-                      </Link>
+                    
+                    {/* User subscription badge */}
+                    <div className="flex items-center space-x-3">
+                      <span className={`px-4 py-2 rounded-full text-sm font-medium ${
+                        userData?.subscription_type === 'professional' 
+                          ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                          : userData?.subscription_type === 'premium'
+                            ? 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+                      }`}>
+                        {userData?.subscription_type?.toUpperCase() || 'FREE'} PLAN
+                      </span>
+                      
+                      <div className="flex space-x-2">
+                        <Link 
+                          to="/formulas"
+                          className="btn bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-300"
+                        >
+                          <svg className="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
+                            <path d="M9.4 13.4l1.4-1.4-4-4 4-4-1.4-1.4L4 8z"></path>
+                          </svg>
+                          <span className="ml-2">All Formulas</span>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Benefits Section */}
+                <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-200 dark:border-green-800">
+                    <div className="text-green-600 dark:text-green-400 text-3xl mb-3">🤖</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-lg">AI-Powered Names</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Our advanced AI analyzes your needs and creates a perfect formula with a creative, market-ready name
+                    </p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-xl border border-blue-200 dark:border-blue-800">
+                    <div className="text-blue-600 dark:text-blue-400 text-3xl mb-3">⚡</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-lg">Lightning Fast</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Get a complete formula in minutes, not hours of research and formulation work
+                    </p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-800">
+                    <div className="text-purple-600 dark:text-purple-400 text-3xl mb-3">🎯</div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-lg">Fully Personalized</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Tailored to your specific skin type, concerns, goals, and brand vision
+                    </p>
+                  </div>
+                </div>
+
+                {/* How It Works Section */}
+                <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
+                    How It Works
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-violet-600 dark:text-violet-400 font-bold text-lg">1</span>
+                      </div>
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">Answer Questions</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Tell us about your skin, goals, preferences, and brand vision</p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-violet-600 dark:text-violet-400 font-bold text-lg">2</span>
+                      </div>
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">AI Analysis</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Our AI processes your responses and creates a custom formula</p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-violet-600 dark:text-violet-400 font-bold text-lg">3</span>
+                      </div>
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">Get Complete Formula</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Receive a formula with AI-generated name and detailed instructions</p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-violet-600 dark:text-violet-400 font-bold text-lg">4</span>
+                      </div>
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">Create & Refine</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Make your formula and adjust ingredients as needed</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subscription-specific features */}
+                {userData?.subscription_type !== 'free' && (
+                  <div className="mb-8 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-violet-200 dark:border-violet-800">
+                    <div className="flex items-center mb-4">
+                      <div className="text-violet-600 dark:text-violet-400 text-2xl mr-3">🔥</div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {userData?.subscription_type?.toUpperCase()} Features Unlocked
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">AI-generated creative product names</span>
+                      </div>
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Advanced ingredient database</span>
+                      </div>
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Detailed manufacturing steps & documentation</span>
+                      </div>
+                      {userData?.subscription_type === 'professional' && (
+                        <>
+                          <div className="flex items-center">
+                            <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">Marketing claims & brand positioning</span>
+                          </div>
+                          <div className="flex items-center">
+                            <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">Regulatory compliance guidance</span>
+                          </div>
+                          <div className="flex items-center">
+                            <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">Complete MSDS & SOP documentation</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Main content grid */}
                 <div className="grid grid-cols-12 gap-6">
                   {/* Left column - Formula Wizard */}
                   <div className="col-span-12 xl:col-span-8">
-                    {/* Formula Wizard */}
-                    {!showSubscriptionAlert && <FormulaWizard />}
+                    {/* Main Formula Wizard Component - Now using questionnaire */}
+                    {!showSubscriptionAlert && (
+                      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                        <FormulaWizard />
+                      </div>
+                    )}
 
                     {/* Subscription CTA (shown only when alert is visible) */}
                     {showSubscriptionAlert && (
@@ -175,28 +306,34 @@ const FormulaCreation = () => {
                           <svg className="w-16 h-16 mx-auto text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                           </svg>
-                          <h2 className="mt-4 text-2xl font-bold text-gray-800 dark:text-gray-100">Upgrade Your Experience</h2>
+                          <h2 className="mt-4 text-2xl font-bold text-gray-800 dark:text-gray-100">Unlock AI Formula Creation</h2>
                           <p className="mt-2 text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                            Unlock unlimited formula creation, premium ingredients, and advanced features by upgrading to our Premium or Professional plan.
+                            Upgrade to create unlimited formulas with AI-generated names, premium ingredients, and advanced features.
                           </p>
                           <div className="mt-6">
                             <Link
                               to="/subscription"
-                              className="inline-flex items-center px-5 py-2.5 rounded-md bg-violet-600 text-white hover:bg-violet-700 font-medium"
+                              className="inline-flex items-center px-6 py-3 rounded-md bg-violet-600 text-white hover:bg-violet-700 font-medium text-lg"
                             >
-                              View Subscription Plans
+                              Upgrade Now
                             </Link>
                           </div>
                         </div>
 
                         <div className="bg-gray-50 dark:bg-gray-750 p-6 border-t border-gray-200 dark:border-gray-700">
-                          <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">Premium Plan Benefits</h3>
+                          <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">What You'll Get:</h3>
                           <div className="grid md:grid-cols-3 gap-4">
                             <div className="flex">
                               <svg className="h-6 w-6 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                               </svg>
-                              <span className="text-gray-700 dark:text-gray-300">Unlimited Formulas</span>
+                              <span className="text-gray-700 dark:text-gray-300">Unlimited AI Formulas</span>
+                            </div>
+                            <div className="flex">
+                              <svg className="h-6 w-6 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                              </svg>
+                              <span className="text-gray-700 dark:text-gray-300">Creative Product Names</span>
                             </div>
                             <div className="flex">
                               <svg className="h-6 w-6 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -204,42 +341,36 @@ const FormulaCreation = () => {
                               </svg>
                               <span className="text-gray-700 dark:text-gray-300">Premium Ingredients</span>
                             </div>
-                            <div className="flex">
-                              <svg className="h-6 w-6 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                              </svg>
-                              <span className="text-gray-700 dark:text-gray-300">Advanced AI Recommendations</span>
-                            </div>
                           </div>
                         </div>
                       </div>
                     )}
 
-                    {/* Tips and Help */}
+                    {/* Enhanced Tips and Help */}
                     <div className="mt-8 bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
                       <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h2 className="font-semibold text-gray-800 dark:text-gray-100">Tips for Creating Effective Formulas</h2>
+                        <h2 className="font-semibold text-gray-800 dark:text-gray-100">AI Formula Creation Tips</h2>
                       </div>
                       <div className="p-5">
                         <div className="grid md:grid-cols-2 gap-6">
                           <div>
-                            <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-2">Formulation Guidelines</h3>
+                            <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-2">Getting Better Results</h3>
                             <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                              <li>Ensure your total percentage equals exactly 100%</li>
-                              <li>Include preservatives if your formula contains water</li>
-                              <li>Consider the appropriate pH range for your product type</li>
-                              <li>Group ingredients by phase (water phase, oil phase, etc.)</li>
-                              <li>Pay attention to compatibility warnings between ingredients</li>
+                              <li>Be specific about your skin concerns and goals</li>
+                              <li>Mention any favorite ingredients you want included</li>
+                              <li>Specify ingredients to avoid (allergies, preferences)</li>
+                              <li>Describe your ideal texture and experience</li>
+                              <li>Share your brand vision for commercial products</li>
                             </ul>
                           </div>
                           <div>
-                            <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-2">Best Practices</h3>
+                            <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-2">After Generation</h3>
                             <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                              <li>Start with a simple formula and refine it gradually</li>
-                              <li>Test small batches before scaling up production</li>
-                              <li>Document changes made to your formula over time</li>
-                              <li>Consider the sensory attributes of your formula</li>
-                              <li>Check ingredient maximum usage levels for safety</li>
+                              <li>Review the AI-generated formula carefully</li>
+                              <li>Test small batches before scaling up</li>
+                              <li>You can edit ingredients and percentages later</li>
+                              <li>Use the INCI list for proper labeling</li>
+                              <li>Follow manufacturing steps for best results</li>
                             </ul>
                           </div>
                         </div>
@@ -247,7 +378,7 @@ const FormulaCreation = () => {
                     </div>
                   </div>
 
-                  {/* Right column - Recent formulas and actions */}
+                  {/* Right column - Recent formulas and resources */}
                   <div className="col-span-12 xl:col-span-4 space-y-6">
                     {/* Recent Formulas */}
                     <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
@@ -255,13 +386,13 @@ const FormulaCreation = () => {
                         <h2 className="font-semibold text-gray-800 dark:text-gray-100">Recent Formulas</h2>
                       </div>
                       <div className="p-3">
-                      {loadingRecentFormulas ? (
-                        <div className="flex justify-center p-4">
-                          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-violet-500"></div>
-                        </div>
-                      ) : Array.isArray(recentFormulas) && recentFormulas.length > 0 ? (
-                        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                          {recentFormulas.map((formula) => (
+                        {loadingRecentFormulas ? (
+                          <div className="flex justify-center p-4">
+                            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-violet-500"></div>
+                          </div>
+                        ) : Array.isArray(recentFormulas) && recentFormulas.length > 0 ? (
+                          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {recentFormulas.map((formula) => (
                               <li key={formula.id || 'unknown'} className="p-3 hover:bg-gray-50 dark:hover:bg-gray-750 rounded-md">
                                 <div className="flex justify-between items-center">
                                   <div>
@@ -293,6 +424,7 @@ const FormulaCreation = () => {
                         ) : (
                           <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                             <p>No formulas created yet</p>
+                            <p className="text-xs mt-1">Your AI-generated formulas will appear here</p>
                           </div>
                         )}
                         
@@ -307,13 +439,44 @@ const FormulaCreation = () => {
                       </div>
                     </div>
 
+                    {/* AI Assistant Info */}
+                    <div className="bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-900/20 dark:to-indigo-900/20 rounded-lg p-6 border border-violet-200 dark:border-violet-800">
+                      <div className="flex items-center mb-4">
+                        <div className="text-violet-600 dark:text-violet-400 text-2xl mr-3">🧠</div>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">AI Assistant</h3>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Our AI analyzes your questionnaire responses to create personalized formulas with creative names that match your vision.
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center text-sm">
+                          <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-gray-700 dark:text-gray-300">Creative product naming</span>
+                        </div>
+                        <div className="flex items-center text-sm">
+                          <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-gray-700 dark:text-gray-300">Intelligent ingredient selection</span>
+                        </div>
+                        <div className="flex items-center text-sm">
+                          <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-gray-700 dark:text-gray-300">Personalized formulations</span>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Formulation Resources */}
                     <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
                       <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
                         <h2 className="font-semibold text-gray-800 dark:text-gray-100">Formulation Resources</h2>
                       </div>
                       <div className="p-5">
-                        <ul className="space-y-3">
+                        <ul className="space-y-4">
                           <li className="flex items-start">
                             <div className="flex-shrink-0 h-5 w-5 text-violet-500">
                               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -323,7 +486,7 @@ const FormulaCreation = () => {
                             <div className="ml-3">
                               <h3 className="text-sm font-medium text-gray-800 dark:text-gray-100">Ingredient Database</h3>
                               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Browse our comprehensive collection of ingredients with detailed information.
+                                Browse our comprehensive collection of ingredients with detailed information and compatibility data.
                               </p>
                               <Link 
                                 to="/ingredients"
@@ -342,7 +505,7 @@ const FormulaCreation = () => {
                             <div className="ml-3">
                               <h3 className="text-sm font-medium text-gray-800 dark:text-gray-100">Knowledge Base</h3>
                               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Learn about cosmetic formulation principles, techniques, and best practices.
+                                Learn about cosmetic formulation principles, AI-assisted creation, and best practices.
                               </p>
                               <Link 
                                 to="/knowledge-base"
@@ -361,7 +524,7 @@ const FormulaCreation = () => {
                             <div className="ml-3">
                               <h3 className="text-sm font-medium text-gray-800 dark:text-gray-100">Video Tutorials</h3>
                               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Watch step-by-step tutorials on creating different cosmetic products.
+                                Watch step-by-step tutorials on AI formula creation and cosmetic manufacturing.
                               </p>
                               <Link 
                                 to="/tutorials"
@@ -375,14 +538,14 @@ const FormulaCreation = () => {
                       </div>
                     </div>
 
-                    {/* Subscription Status Card */}
+                    {/* Enhanced Subscription Status Card */}
                     {userData && (
                       <div className={`bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden border-t-4 ${
                         userData.subscription_type === 'free' 
                           ? 'border-gray-400' 
                           : userData.subscription_type === 'premium'
                             ? 'border-violet-500'
-                            : 'border-gold-500'
+                            : 'border-purple-500'
                       }`}>
                         <div className="p-5">
                           <div className="flex items-center justify-between mb-4">
@@ -407,7 +570,7 @@ const FormulaCreation = () => {
                             {userData.subscription_type === 'free' && (
                               <>
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-500 dark:text-gray-400">Formulas</span>
+                                  <span className="text-sm text-gray-500 dark:text-gray-400">AI Formulas</span>
                                   <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
                                     {recentFormulas.length}/3
                                   </span>
@@ -419,7 +582,7 @@ const FormulaCreation = () => {
                                   ></div>
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                  Free plan limited to 3 formulas. Upgrade for unlimited formulas and premium features.
+                                  Free plan limited to 3 AI formulas. Upgrade for unlimited formulas with advanced naming and features.
                                 </p>
                               </>
                             )}
@@ -430,21 +593,23 @@ const FormulaCreation = () => {
                                   <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                                   </svg>
-                                  <span className="text-sm text-gray-600 dark:text-gray-300">Unlimited formulas</span>
+                                  <span className="text-sm text-gray-600 dark:text-gray-300">Unlimited AI formulas</span>
                                 </div>
                                 <div className="flex items-center">
                                   <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                                   </svg>
                                   <span className="text-sm text-gray-600 dark:text-gray-300">
-                                    {userData.subscription_type === 'premium' ? 'Premium ingredients' : 'All ingredients'}
+                                    Creative AI-generated names
                                   </span>
                                 </div>
                                 <div className="flex items-center">
                                   <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                                   </svg>
-                                  <span className="text-sm text-gray-600 dark:text-gray-300">Advanced AI recommendations</span>
+                                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                                    {userData.subscription_type === 'premium' ? 'Premium ingredients' : 'All ingredients & advanced features'}
+                                  </span>
                                 </div>
                                 {userData.subscription_expires_at && (
                                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
@@ -466,7 +631,7 @@ const FormulaCreation = () => {
             <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="py-4 text-sm text-center text-gray-500 dark:text-gray-400">
-                  &copy; {new Date().getFullYear()} Cosmetic Formula Lab. All rights reserved.
+                  &copy; {new Date().getFullYear()} BeautyCraft Formula Lab. All rights reserved.
                 </div>
               </div>
             </footer>
