@@ -1,14 +1,13 @@
-// frontend/src/components/FormulaWizard.jsx
+// frontend/src/components/Formulas/FormulaWizard.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useFormula } from '../../context/FormulaContext';
 import { useNavigate } from 'react-router-dom';
-import { aiFormulaAPI } from '../../services/api'; // Import the API service
+import { aiFormulaAPI } from '../../services/api';
 
 /**
- * FormulaWizard component - Complete questionnaire-based formula creation
+ * FormulaWizard component - Clean questionnaire-based formula creation
  * 
- * This component replaces the traditional multi-step wizard with a comprehensive
- * questionnaire that generates both the formula name and complete formulation using AI.
+ * Redesigned for immediate user engagement with minimal cognitive overhead
  */
 const FormulaWizard = () => {
   const navigate = useNavigate();
@@ -41,34 +40,18 @@ const FormulaWizard = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [generatedFormulaId, setGeneratedFormulaId] = useState(null);
-  const previousProductTypeRef = useRef('');
 
-  // Step configuration
+  // Simplified step configuration - only 5 essential steps
   const steps = [
     {
-      title: "Purpose",
-      subtitle: "Who is this product for?",
-      icon: "👤"
-    },
-    {
-      title: "Product Type", 
+      title: "Product Type",
       subtitle: "What are you creating?",
       icon: "🧴"
     },
     {
-      title: "Formula Style",
-      subtitle: "What kind of formula?",
-      icon: "✨"
-    },
-    {
-      title: "Goals",
+      title: "Goals", 
       subtitle: "What should it do?",
       icon: "🎯"
-    },
-    {
-      title: "Target User",
-      subtitle: "Who will use this?",
-      icon: "🌍"
     },
     {
       title: "Ingredients",
@@ -82,7 +65,7 @@ const FormulaWizard = () => {
     },
     {
       title: "Final Details",
-      subtitle: "Budget and timeline",
+      subtitle: "Name and purpose",
       icon: "📋"
     }
   ];
@@ -116,11 +99,11 @@ const FormulaWizard = () => {
 
   const isStepValid = () => {
     switch (currentStep) {
-      case 0: return formData.purpose !== '';
-      case 1: return formData.productCategory !== '';
-      case 2: return formData.formulaType.length > 0;
-      case 3: return formData.primaryGoals.length > 0;
-      case 4: return formData.targetUser.gender !== '' || formData.purpose === 'personal';
+      case 0: return formData.productCategory !== '';
+      case 1: return formData.primaryGoals.length > 0;
+      case 2: return true; // Optional step
+      case 3: return formData.desiredExperience.length > 0;
+      case 4: return formData.purpose !== '';
       default: return true;
     }
   };
@@ -144,11 +127,23 @@ const FormulaWizard = () => {
     setGeneratedFormulaId(null);
 
     try {
-      // Transform questionnaire data for the new API endpoint
+      // Auto-set formula type if not set
+      if (formData.formulaType.length === 0) {
+        const typeMapping = {
+          'face_care': ['Serum'],
+          'hair_care': ['Shampoo'],
+          'body_care': ['Lotion']
+        };
+        setFormData(prev => ({
+          ...prev,
+          formulaType: typeMapping[prev.productCategory] || ['Serum']
+        }));
+      }
+
       const questionnaireRequest = {
         purpose: formData.purpose,
         product_category: formData.productCategory,
-        formula_types: formData.formulaType,
+        formula_types: formData.formulaType.length > 0 ? formData.formulaType : ['Serum'],
         primary_goals: formData.primaryGoals,
         target_user: formData.targetUser,
         preferred_ingredients_text: formData.mustHaveIngredients,
@@ -164,7 +159,6 @@ const FormulaWizard = () => {
 
       console.log('Submitting questionnaire data:', questionnaireRequest);
 
-      // Call the new questionnaire-based API endpoint using your API service
       const response = await aiFormulaAPI.generateFormulaFromQuestionnaire(questionnaireRequest);
       
       if (response && response.data && response.data.id) {
@@ -176,7 +170,6 @@ const FormulaWizard = () => {
     } catch (error) {
       console.error('Error creating formula:', error);
       
-      // Enhanced error handling
       let errorMessage = 'Failed to create formula. Please try again.';
       
       if (error.response) {
@@ -185,7 +178,6 @@ const FormulaWizard = () => {
         
         if (error.response.data && error.response.data.detail) {
           if (Array.isArray(error.response.data.detail)) {
-            // Handle validation error array - common in FastAPI 422 errors
             errorMessage = error.response.data.detail
               .map(err => err.msg || JSON.stringify(err))
               .join(', ');
@@ -213,34 +205,38 @@ const FormulaWizard = () => {
     switch (currentStep) {
       case 0:
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Who is this product for?
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                What are you creating?
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                We'll tailor your experience accordingly
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                Choose your product type to get started
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { value: 'personal', label: 'Just for me / personal use', icon: '🙋‍♀️' },
-                { value: 'brand', label: 'For my brand / to sell', icon: '🏢' }
+                { value: 'face_care', label: 'Face Care', icon: '😊', desc: 'Serums, creams, cleansers' },
+                { value: 'hair_care', label: 'Hair Care', icon: '💇‍♀️', desc: 'Shampoos, conditioners, treatments' },
+                { value: 'body_care', label: 'Body Care', icon: '🧴', desc: 'Lotions, oils, scrubs' }
               ].map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => updateFormData('purpose', option.value)}
-                  className={`p-6 rounded-xl border-2 transition-all duration-200 text-left ${
-                    formData.purpose === option.value
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
+                  onClick={() => updateFormData('productCategory', option.value)}
+                  className={`p-8 rounded-2xl border-2 transition-all duration-200 text-center hover:shadow-lg ${
+                    formData.productCategory === option.value
+                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-lg'
                       : 'border-gray-200 dark:border-gray-700 hover:border-violet-300'
                   }`}
                 >
-                  <div className="text-3xl mb-3">{option.icon}</div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                  <div className="text-5xl mb-4">{option.icon}</div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                     {option.label}
                   </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {option.desc}
+                  </p>
                 </button>
               ))}
             </div>
@@ -249,433 +245,267 @@ const FormulaWizard = () => {
 
       case 1:
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                What type of product are you creating?
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                What's your main goal?
               </h2>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                Select up to 3 priorities for your formula
+              </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                { value: 'face_care', label: 'Face care', icon: '😊' },
-                { value: 'hair_care', label: 'Hair care', icon: '💇‍♀️' },
-                { value: 'body_care', label: 'Body care', icon: '🧴' }
-              ].map((option) => (
+                { value: 'hydrate', label: 'Hydrate', icon: '💧', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+                { value: 'anti_aging', label: 'Anti-Aging', icon: '⏰', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+                { value: 'anti_acne', label: 'Anti-Acne', icon: '✨', color: 'bg-green-100 text-green-800 border-green-200' },
+                { value: 'soothe', label: 'Soothe', icon: '🤲', color: 'bg-pink-100 text-pink-800 border-pink-200' },
+                { value: 'brighten', label: 'Brighten', icon: '☀️', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+                { value: 'nourish', label: 'Nourish', icon: '🌿', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+                { value: 'strengthen', label: 'Strengthen', icon: '💪', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+                { value: 'hair_growth', label: 'Hair Growth', icon: '🌱', color: 'bg-teal-100 text-teal-800 border-teal-200' },
+                { value: 'repair', label: 'Repair', icon: '🔧', color: 'bg-red-100 text-red-800 border-red-200' }
+              ].map((goal) => (
                 <button
-                  key={option.value}
-                  onClick={() => updateFormData('productCategory', option.value)}
-                  className={`p-6 rounded-xl border-2 transition-all duration-200 text-center ${
-                    formData.productCategory === option.value
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-violet-300'
+                  key={goal.value}
+                  onClick={() => toggleArrayValue('primaryGoals', goal.value)}
+                  disabled={formData.primaryGoals.length >= 3 && !formData.primaryGoals.includes(goal.value)}
+                  className={`p-6 rounded-xl border-2 transition-all duration-200 text-center relative ${
+                    formData.primaryGoals.includes(goal.value)
+                      ? `border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-lg`
+                      : formData.primaryGoals.length >= 3
+                        ? 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-violet-300 hover:shadow-md'
                   }`}
                 >
-                  <div className="text-4xl mb-3">{option.icon}</div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    {option.label}
-                  </h3>
+                  <div className="text-3xl mb-3">{goal.icon}</div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    formData.primaryGoals.includes(goal.value) ? 'bg-violet-100 text-violet-800' : goal.color
+                  }`}>
+                    {goal.label}
+                  </span>
+                  {formData.primaryGoals.includes(goal.value) && (
+                    <div className="absolute top-2 right-2 w-6 h-6 bg-violet-500 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
             
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Other (specify):
-              </label>
-              <input
-                type="text"
-                placeholder="Enter custom product type..."
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-                onChange={(e) => {
-                  if (e.target.value) {
-                    updateFormData('productCategory', e.target.value);
-                  }
-                }}
-              />
+            <div className="text-center">
+              <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full">
+                Selected: {formData.primaryGoals.length}/3
+              </span>
             </div>
           </div>
         );
 
       case 2:
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                What kind of formula are you dreaming of?
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                Ingredient Preferences
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                You can choose multiple!
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                Any special ingredients you want? (Optional)
               </p>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {[
-                'Serum', 'Cream', 'Oil', 'Lotion', 'Cleanser', 
-                'Shampoo', 'Conditioner', 'Mask', 'Leave-in / Styling', 
-                'Exfoliator', 'Toner', 'Essence'
-              ].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => toggleArrayValue('formulaType', type)}
-                  className={`p-4 rounded-lg border-2 transition-all duration-200 text-center ${
-                    formData.formulaType.includes(type)
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-violet-300 text-gray-700 dark:text-gray-300'
-                  }`}
-                >
-                  <span className="text-sm font-medium">{type}</span>
-                </button>
-              ))}
-            </div>
-            
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Other (specify):
-              </label>
-              <input
-                type="text"
-                placeholder="Enter custom formula type..."
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && e.target.value) {
-                    toggleArrayValue('formulaType', e.target.value);
-                    e.target.value = '';
-                  }
-                }}
-              />
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+                <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  🧪 Must-Have Ingredients
+                </label>
+                <textarea
+                  value={formData.mustHaveIngredients}
+                  onChange={(e) => updateFormData('mustHaveIngredients', e.target.value)}
+                  rows={3}
+                  placeholder="e.g., Hyaluronic acid, Vitamin C, Niacinamide, Rose water..."
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white resize-none"
+                />
+              </div>
+              
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+                <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  🚫 Ingredients to Avoid
+                </label>
+                <textarea
+                  value={formData.avoidIngredients}
+                  onChange={(e) => updateFormData('avoidIngredients', e.target.value)}
+                  rows={3}
+                  placeholder="e.g., Sulfates, parabens, fragrance, silicones..."
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white resize-none"
+                />
+              </div>
+              
+              <div className="text-center text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                💡 Leave empty and our AI will choose the perfect ingredients for your goals
+              </div>
             </div>
           </div>
         );
 
       case 3:
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                What should this product do?
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                Desired Experience
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Pick your top 3 priorities
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                How should your product feel and perform?
               </p>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { value: 'hydrate', label: 'Hydrate', icon: '💧' },
-                { value: 'nourish', label: 'Nourish', icon: '🌿' },
-                { value: 'strengthen', label: 'Strengthen', icon: '💪' },
-                { value: 'hair_growth', label: 'Grow hair / Prevent loss', icon: '🌱' },
-                { value: 'soothe', label: 'Soothe sensitive skin', icon: '🤲' },
-                { value: 'anti_acne', label: 'Anti-acne', icon: '✨' },
-                { value: 'brighten', label: 'Brighten', icon: '☀️' },
-                { value: 'anti_aging', label: 'Anti-aging', icon: '⏰' },
-                { value: 'repair', label: 'Repair damage', icon: '🔧' },
-                { value: 'balance_oil', label: 'Balance oil', icon: '⚖️' },
-                { value: 'detox', label: 'Detox / Clarify', icon: '🧹' },
-                { value: 'fragrance', label: 'Fragrance experience', icon: '🌸' }
-              ].map((goal) => (
+                { value: 'light_absorbing', label: 'Light & Fast', icon: '💨', desc: 'Quick absorption' },
+                { value: 'rich_creamy', label: 'Rich & Creamy', icon: '🥛', desc: 'Luxurious texture' },
+                { value: 'silky', label: 'Silky Smooth', icon: '🪞', desc: 'Silk-like feel' },
+                { value: 'glow_effect', label: 'Glowing', icon: '✨', desc: 'Radiant finish' },
+                { value: 'cooling', label: 'Cooling', icon: '❄️', desc: 'Refreshing feel' },
+                { value: 'energizing', label: 'Energizing', icon: '⚡', desc: 'Invigorating' },
+                { value: 'natural_scent', label: 'Natural Scent', icon: '🌸', desc: 'Light fragrance' },
+                { value: 'no_scent', label: 'Fragrance-Free', icon: '🚫', desc: 'No added scent' }
+              ].map((experience) => (
                 <button
-                  key={goal.value}
-                  onClick={() => toggleArrayValue('primaryGoals', goal.value)}
-                  disabled={formData.primaryGoals.length >= 3 && !formData.primaryGoals.includes(goal.value)}
-                  className={`p-4 rounded-lg border-2 transition-all duration-200 text-center ${
-                    formData.primaryGoals.includes(goal.value)
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300'
-                      : formData.primaryGoals.length >= 3
-                        ? 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-violet-300 text-gray-700 dark:text-gray-300'
+                  key={experience.value}
+                  onClick={() => toggleArrayValue('desiredExperience', experience.value)}
+                  className={`p-6 rounded-xl border-2 transition-all duration-200 text-center hover:shadow-md ${
+                    formData.desiredExperience.includes(experience.value)
+                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-lg'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-violet-300'
                   }`}
                 >
-                  <div className="text-xl mb-1">{goal.icon}</div>
-                  <span className="text-sm font-medium">{goal.label}</span>
+                  <div className="text-3xl mb-2">{experience.icon}</div>
+                  <div className="font-semibold text-gray-900 dark:text-white text-sm mb-1">
+                    {experience.label}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {experience.desc}
+                  </div>
+                  {formData.desiredExperience.includes(experience.value) && (
+                    <div className="absolute top-2 right-2 w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                  )}
                 </button>
               ))}
-            </div>
-            
-            <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-              Selected: {formData.primaryGoals.length}/3
             </div>
           </div>
         );
 
       case 4:
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Who is your ideal user?
-              </h2>
-              {formData.purpose === 'personal' && (
-                <p className="text-gray-600 dark:text-gray-400">
-                  Tell us about yourself
-                </p>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Gender
-                </label>
-                <select
-                  value={formData.targetUser.gender}
-                  onChange={(e) => updateFormData('targetUser.gender', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="">Select gender</option>
-                  <option value="all">All genders</option>
-                  <option value="female">Female</option>
-                  <option value="male">Male</option>
-                  <option value="non-binary">Non-binary</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Age group
-                </label>
-                <select
-                  value={formData.targetUser.ageGroup}
-                  onChange={(e) => updateFormData('targetUser.ageGroup', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="">Select age group</option>
-                  <option value="teens">Teens (13-19)</option>
-                  <option value="young_adults">Young Adults (20-29)</option>
-                  <option value="adults">Adults (30-49)</option>
-                  <option value="mature">Mature (50+)</option>
-                  <option value="all_ages">All ages</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Skin/Hair type
-                </label>
-                <input
-                  type="text"
-                  value={formData.targetUser.skinHairType}
-                  onChange={(e) => updateFormData('targetUser.skinHairType', e.target.value)}
-                  placeholder="e.g., Oily skin, Dry curly hair, Sensitive skin"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Cultural background (if relevant)
-                </label>
-                <input
-                  type="text"
-                  value={formData.targetUser.culturalBackground}
-                  onChange={(e) => updateFormData('targetUser.culturalBackground', e.target.value)}
-                  placeholder="Optional"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Concerns or lifestyle traits
-              </label>
-              <textarea
-                value={formData.targetUser.concerns}
-                onChange={(e) => updateFormData('targetUser.concerns', e.target.value)}
-                rows={3}
-                placeholder="e.g., Busy lifestyle, environmental concerns, budget-conscious"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-          </div>
-        );
-
-      case 5:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Ingredient Preferences
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Tell us about your ingredient wishes
-              </p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                🧪 Any special ingredients you want to include?
-              </label>
-              <textarea
-                value={formData.mustHaveIngredients}
-                onChange={(e) => updateFormData('mustHaveIngredients', e.target.value)}
-                rows={3}
-                placeholder="e.g., Rice water, Niacinamide, Rosehip oil, MSM, Hyaluronic acid..."
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-              />
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                List any must-have extracts, oils, actives or DIY favorites
-              </p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                🚫 Are there any ingredients you want to avoid?
-              </label>
-              <textarea
-                value={formData.avoidIngredients}
-                onChange={(e) => updateFormData('avoidIngredients', e.target.value)}
-                rows={3}
-                placeholder="e.g., No fragrance, no sulfates, no silicones, no parabens..."
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-              />
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                For allergies, sensitivities, or clean beauty preferences
-              </p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                🎯 Do you have a brand vision or name? (Optional)
-              </label>
-              <textarea
-                value={formData.brandVision}
-                onChange={(e) => updateFormData('brandVision', e.target.value)}
-                rows={2}
-                placeholder="Tell us about your brand concept, values, or vision..."
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-          </div>
-        );
-
-      case 6:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                What kind of experience do you want?
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Pick as many as you like
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {[
-                { value: 'silky', label: 'Silky', icon: '🪞' },
-                { value: 'light_absorbing', label: 'Light & fast-absorbing', icon: '💨' },
-                { value: 'rich_creamy', label: 'Rich & creamy', icon: '🥛' },
-                { value: 'natural_scent', label: 'Natural scent', icon: '🌸' },
-                { value: 'no_scent', label: 'No scent', icon: '🚫' },
-                { value: 'glow_effect', label: 'Glow effect', icon: '✨' },
-                { value: 'cooling', label: 'Cooling / soothing', icon: '❄️' },
-                { value: 'energizing', label: 'Energizing', icon: '⚡' }
-              ].map((experience) => (
-                <button
-                  key={experience.value}
-                  onClick={() => toggleArrayValue('desiredExperience', experience.value)}
-                  className={`p-4 rounded-lg border-2 transition-all duration-200 text-center ${
-                    formData.desiredExperience.includes(experience.value)
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-violet-300 text-gray-700 dark:text-gray-300'
-                  }`}
-                >
-                  <div className="text-xl mb-1">{experience.icon}</div>
-                  <span className="text-sm font-medium">{experience.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 7:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
                 Final Details
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Just a few more details to perfect your formula
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                Tell us about your project
               </p>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                📦 Do you already have packaging in mind?
-              </label>
-              <div className="space-y-2">
-                {[
-                  'Yes – I already picked something',
-                  'I\'d love recommendations', 
-                  'Not yet, just want a formula first'
-                ].map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => updateFormData('packaging', option)}
-                    className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-left ${
-                      formData.packaging === option
-                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-violet-300'
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
+            <div className="max-w-2xl mx-auto space-y-6">
+              {/* Purpose Selection */}
+              <div>
+                <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Who is this for?
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { value: 'personal', label: 'Personal Use', icon: '🙋‍♀️', desc: 'Just for me or my family' },
+                    { value: 'brand', label: 'My Brand', icon: '🏢', desc: 'Commercial product to sell' }
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => updateFormData('purpose', option.value)}
+                      className={`p-6 rounded-xl border-2 transition-all duration-200 text-left hover:shadow-md ${
+                        formData.purpose === option.value
+                          ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-lg'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-violet-300'
+                      }`}
+                    >
+                      <div className="text-3xl mb-3">{option.icon}</div>
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                        {option.label}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {option.desc}
+                      </p>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                💸 What's your budget or ideal price range? (Optional)
-              </label>
-              <input
-                type="text"
-                value={formData.budget}
-                onChange={(e) => updateFormData('budget', e.target.value)}
-                placeholder="e.g., $50 per batch, $15 per unit"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                ⏱ When would you like to have your formula ready?
-              </label>
-              <div className="space-y-2">
-                {[
-                  'Urgently – within 7 days',
-                  'Within 2–3 weeks',
-                  'No rush – just exploring'
-                ].map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => updateFormData('timeline', option)}
-                    className={`w-full p-3 rounded-lg border-2 transition-all duration-200 text-left ${
-                      formData.timeline === option
-                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-violet-300'
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
+
+              {/* Brand Vision */}
+              {formData.purpose === 'brand' && (
+                <div className="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-6">
+                  <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                    🎯 Brand Vision (Optional)
+                  </label>
+                  <textarea
+                    value={formData.brandVision}
+                    onChange={(e) => updateFormData('brandVision', e.target.value)}
+                    rows={3}
+                    placeholder="Tell us about your brand concept, values, or target market..."
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white resize-none"
+                  />
+                </div>
+              )}
+
+              {/* Additional Notes */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+                <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  💬 Anything else? (Optional)
+                </label>
+                <textarea
+                  value={formData.additionalNotes}
+                  onChange={(e) => updateFormData('additionalNotes', e.target.value)}
+                  rows={3}
+                  placeholder="Any special requests, inspiration, or additional details..."
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white resize-none"
+                />
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                💬 Anything else you want to tell us?
-              </label>
-              <textarea
-                value={formData.additionalNotes}
-                onChange={(e) => updateFormData('additionalNotes', e.target.value)}
-                rows={4}
-                placeholder="Free space for your vision, concerns or inspiration..."
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white"
-              />
+
+              {/* Summary */}
+              <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-violet-200 dark:border-violet-800">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-lg">📋 Your Formula Summary</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong className="text-gray-900 dark:text-white">Category:</strong>
+                    <span className="ml-2 text-gray-600 dark:text-gray-400">
+                      {formData.productCategory ? formData.productCategory.replace('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Not selected'}
+                    </span>
+                  </div>
+                  <div>
+                    <strong className="text-gray-900 dark:text-white">Purpose:</strong>
+                    <span className="ml-2 text-gray-600 dark:text-gray-400">
+                      {formData.purpose ? formData.purpose.charAt(0).toUpperCase() + formData.purpose.slice(1) : 'Not selected'}
+                    </span>
+                  </div>
+                  <div className="md:col-span-2">
+                    <strong className="text-gray-900 dark:text-white">Goals:</strong>
+                    <span className="ml-2 text-gray-600 dark:text-gray-400">
+                      {formData.primaryGoals.length > 0 ? formData.primaryGoals.join(', ') : 'None selected'}
+                    </span>
+                  </div>
+                  <div className="md:col-span-2">
+                    <strong className="text-gray-900 dark:text-white">Experience:</strong>
+                    <span className="ml-2 text-gray-600 dark:text-gray-400">
+                      {formData.desiredExperience.length > 0 ? formData.desiredExperience.join(', ') : 'None selected'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -686,200 +516,200 @@ const FormulaWizard = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 px-6 py-8 border-b border-gray-200 dark:border-gray-700">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            🌿 BeautyCraft Product Creation
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Your AI-Powered Companion to Crafting the Perfect Formula
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Clean Header */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm">
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3 flex items-center justify-center gap-3">
+              <span className="text-4xl">✨</span>
+              Let's Create Your Perfect Formula
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              Answer a few questions and we'll generate a custom formulation just for you
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="px-6 py-4 bg-gray-50 dark:bg-gray-750">
-        <div className="flex items-center justify-between mb-4">
-          {steps.map((step, index) => (
-            <div key={index} className="flex flex-col items-center flex-1">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 ${
-                index < currentStep
-                  ? 'bg-violet-500 text-white'
-                  : index === currentStep
-                    ? 'bg-violet-100 dark:bg-violet-900 text-violet-600 dark:text-violet-400 border-2 border-violet-500'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-              }`}>
-                {index < currentStep ? '✓' : step.icon}
-              </div>
-              <div className="hidden md:block mt-2 text-xs text-center max-w-20">
-                <div className={`font-medium ${
-                  index === currentStep ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500 dark:text-gray-400'
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-4xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Step {currentStep + 1} of {steps.length}
+            </span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {Math.round(((currentStep + 1) / steps.length) * 100)}% complete
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {steps.map((step, index) => (
+              <div key={index} className="flex items-center flex-1">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-medium transition-all duration-200 ${
+                  index < currentStep
+                    ? 'bg-violet-500 text-white'
+                    : index === currentStep
+                      ? 'bg-violet-100 dark:bg-violet-900 text-violet-600 dark:text-violet-400 border-2 border-violet-500'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                 }`}>
-                  {step.title}
+                  {index < currentStep ? '✓' : step.icon}
                 </div>
-                <div className="text-gray-400 dark:text-gray-500 text-xs">
-                  {step.subtitle}
-                </div>
+                {index < steps.length - 1 && (
+                  <div className={`flex-1 h-1 mx-2 transition-all duration-300 ${
+                    index < currentStep ? 'bg-violet-500' : 'bg-gray-200 dark:bg-gray-700'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="max-w-4xl mx-auto px-6 pt-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               </div>
             </div>
-          ))}
-        </div>
-        
-        {/* Progress line */}
-        <div className="relative">
-          <div className="absolute top-0 left-0 h-1 bg-gray-200 dark:bg-gray-700 w-full rounded-full"></div>
-          <div 
-            className="absolute top-0 left-0 h-1 bg-violet-500 rounded-full transition-all duration-500"
-            style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <div className="mx-6 mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-            </div>
           </div>
         </div>
       )}
 
-      {/* Success Display */}
       {success && (
-        <div className="mx-6 mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-green-600 dark:text-green-400">{success}</p>
-              
-              {generatedFormulaId && (
-                <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={handleViewFormulaDetails}
-                    className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none"
-                  >
-                    <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    View Formula Details
-                  </button>
-                  
-                  <button
-                    onClick={() => navigate('/formulas')}
-                    className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none"
-                  >
-                    <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                    View All Formulas
-                  </button>
-                </div>
-              )}
+        <div className="max-w-4xl mx-auto px-6 pt-6">
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-green-600 dark:text-green-400">{success}</p>
+                
+                {generatedFormulaId && (
+                  <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={handleViewFormulaDetails}
+                      className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none"
+                    >
+                      <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      View Formula Details
+                    </button>
+                    
+                    <button
+                      onClick={() => navigate('/formulas')}
+                      className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none"
+                    >
+                      <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                      View All Formulas
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Step Content */}
-      <div className="p-6">
-        {renderStepContent()}
-      </div>
-
-      {/* Navigation */}
-      <div className="px-6 py-4 bg-gray-50 dark:bg-gray-750 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-        <button
-          onClick={handlePrevious}
-          disabled={currentStep === 0}
-          className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center ${
-            currentStep === 0
-              ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-          }`}
-        >
-          <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          Previous
-        </button>
-
-        <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-          <span>{currentStep + 1}</span>
-          <span>of</span>
-          <span>{steps.length}</span>
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+          {renderStepContent()}
         </div>
-
-        {currentStep === steps.length - 1 ? (
-          <button
-            onClick={handleSubmit}
-            disabled={isGenerating || !isStepValid()}
-            className={`px-8 py-3 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 ${
-              isGenerating || !isStepValid()
-                ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-violet-500 to-indigo-600 text-white hover:from-violet-600 hover:to-indigo-700'
-            }`}
-          >
-            {isGenerating ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Creating Your Formula...</span>
-              </>
-            ) : (
-              <>
-                <span>✨ Create My Formula</span>
-              </>
-            )}
-          </button>
-        ) : (
-          <button
-            onClick={handleNext}
-            disabled={!isStepValid()}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center ${
-              isStepValid()
-                ? 'bg-violet-500 hover:bg-violet-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Next
-            <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        )}
       </div>
 
-      {/* Footer Information */}
-      <div className="px-6 py-4 bg-gray-50 dark:bg-gray-750 text-center border-t border-gray-200 dark:border-gray-700">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          ✨ Powered by AI • Crafted with love • Made for you
-        </p>
-        
-        {/* Optional explanation/tips */}
-        <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400">
-          <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">How AI Formula Generation Works</h4>
-          <ul className="list-disc pl-5 space-y-1 text-left">
-            <li>Our AI analyzes your questionnaire responses and preferences</li>
-            <li>It creates a unique product name that reflects your goals and brand vision</li>
-            <li>The formula is optimized for your specific needs, skin type, and desired experience</li>
-            <li>You receive a complete formulation with ingredients, percentages, and manufacturing steps</li>
-            <li>All formulas include safety documentation (MSDS) and manufacturing procedures (SOP)</li>
-          </ul>
+      {/* Navigation - Sticky Bottom */}
+      <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <button
+              onClick={handlePrevious}
+              disabled={currentStep === 0}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                currentStep === 0
+                  ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Previous</span>
+            </button>
+
+            <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-full">
+              <span>{currentStep + 1}</span>
+              <span>of</span>
+              <span>{steps.length}</span>
+            </div>
+
+            {currentStep === steps.length - 1 ? (
+              <button
+                onClick={handleSubmit}
+                disabled={isGenerating || !isStepValid()}
+                className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg ${
+                  isGenerating || !isStepValid()
+                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-violet-500/25'
+                }`}
+              >
+                {isGenerating ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Creating Your Formula...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xl">✨</span>
+                    <span>Generate My Formula</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={handleNext}
+                disabled={!isStepValid()}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                  isStepValid()
+                    ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                <span>Next</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Minimal Footer */}
+      <div className="bg-gray-50 dark:bg-gray-900 py-8">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            ✨ Powered by AI • Made with love for formulators
+          </p>
         </div>
       </div>
     </div>
