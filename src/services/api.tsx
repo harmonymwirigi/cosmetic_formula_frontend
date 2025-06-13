@@ -409,6 +409,105 @@ export const notificationAPI = {
     }
   }
 };
+
+
+// Add to your existing api.tsx file
+export const costsAPI = {
+  // Update ingredient cost information
+  updateIngredientCost: (ingredientId, costData) => {
+    return api.post(`/costs/ingredients/${ingredientId}/cost`, costData);
+  },
+
+  // Get ingredient cost breakdown
+  getIngredientCostBreakdown: (ingredientId, targetCurrency = 'USD') => {
+    return api.get(`/costs/ingredients/${ingredientId}/cost`, {
+      params: { target_currency: targetCurrency }
+    });
+  },
+
+  // Calculate formula cost breakdown
+  calculateFormulaCostBreakdown: (formulaId, requestData) => {
+    return api.post(`/costs/formulas/${formulaId}/cost-breakdown`, {
+      formula_id: formulaId,
+      batch_size: requestData.batch_size,
+      batch_unit: requestData.batch_unit,
+      target_currency: requestData.target_currency || 'USD'
+    });
+  },
+
+  // Update formula batch size
+  updateFormulaBatchSize: (formulaId, batchSize, batchUnit) => {
+    return api.post(`/costs/formulas/${formulaId}/update-batch-size`, null, {
+      params: {
+        batch_size: batchSize,
+        batch_unit: batchUnit
+      }
+    });
+  },
+
+  // Get supported currencies
+  getSupportedCurrencies: () => {
+    return api.get('/costs/currencies');
+  },
+
+  // Refresh exchange rates
+  refreshExchangeRates: () => {
+    return api.post('/costs/currencies/refresh-rates');
+  },
+
+  // Bulk import ingredient costs
+  bulkImportIngredientCosts: (file, defaultCurrency = 'USD', supplierName = null) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const params = new URLSearchParams();
+    params.append('default_currency', defaultCurrency);
+    if (supplierName) {
+      params.append('supplier_name', supplierName);
+    }
+
+    return api.post(`/costs/ingredients/bulk-cost-import?${params.toString()}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  // Get formula cost summary (for formula cards)
+  getFormulaCostSummary: (formulaId, targetCurrency = 'USD') => {
+    return api.get(`/costs/formulas/${formulaId}/cost-summary`, {
+      params: { target_currency: targetCurrency }
+    });
+  },
+
+  // Currency conversion utilities
+  convertCurrency: async (amount, fromCurrency, toCurrency = 'USD') => {
+    try {
+      // This would typically be handled by the backend
+      // For now, we'll return a placeholder
+      return { converted_amount: amount, rate: 1.0 };
+    } catch (error) {
+      console.error('Currency conversion failed:', error);
+      throw error;
+    }
+  },
+
+  // Get cost trends (future feature)
+  getCostTrends: (ingredientId, timeframe = '30d') => {
+    return api.get(`/costs/ingredients/${ingredientId}/trends`, {
+      params: { timeframe }
+    });
+  },
+
+  // Export cost data
+  exportCostData: (formulaId, format = 'csv') => {
+    return api.get(`/costs/formulas/${formulaId}/export`, {
+      params: { format },
+      responseType: 'blob'
+    });
+  }
+};
+
 export default {
   auth: authAPI,
   user: userAPI,
@@ -422,4 +521,5 @@ export default {
   userProfile: userProfileAPI,
   export: exportAPI,
   notion: notionAPI,
+  costs: costsAPI, 
 };

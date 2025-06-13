@@ -1,21 +1,18 @@
-//frontend.src.commponents.IngredientSelector.jsx
+// frontend/src/components/Formulas/IngredientSelector.jsx - FIXED VERSION
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useFormula } from '../../context/FormulaContext';
+import { costsAPI } from '../../services/api';
+import CostInput from '../Cost/CostInput';
 import PropTypes from 'prop-types';
 
 /**
- * IngredientSelector component for searching, filtering, and selecting ingredients
- * for cosmetic formulas with drag-and-drop functionality.
- * 
- * @param {Object} props - Component props
- * @param {boolean} props.showSelected - Whether to show selected ingredients
- * @param {boolean} props.showPercentages - Whether to show and allow editing of percentages
- * @param {function} props.onIngredientAdded - Callback for when an ingredient is added
+ * Enhanced IngredientSelector component with cost management
  */
 const IngredientSelector = ({ 
   showSelected = true, 
   showPercentages = true,
+  showCosts = true,  // New prop
   onIngredientAdded 
 }) => {
   const { 
@@ -32,12 +29,15 @@ const IngredientSelector = ({
     errors
   } = useFormula();
 
-  // Local state for filters
+  // Local state for filters and cost management
   const [search, setSearch] = useState('');
   const [phaseFilter, setPhaseFilter] = useState('');
   const [functionFilter, setFunctionFilter] = useState('');
   const [draggedIngredient, setDraggedIngredient] = useState(null);
   const [filteredIngredients, setFilteredIngredients] = useState([]);
+  const [showCostModal, setShowCostModal] = useState(false);
+  const [selectedIngredientForCost, setSelectedIngredientForCost] = useState(null);
+  const [displayCurrency, setDisplayCurrency] = useState('USD');
 
   // Reference for scroll container
   const scrollContainerRef = useRef(null);
@@ -156,6 +156,46 @@ const IngredientSelector = ({
     });
   };
 
+  // Handle cost update
+  const handleCostUpdate = (updatedIngredient) => {
+    // Refresh the ingredient in the available ingredients list
+    // This would typically trigger a re-fetch or update in the context
+    console.log('Cost updated for ingredient:', updatedIngredient);
+    setShowCostModal(false);
+    setSelectedIngredientForCost(null);
+  };
+
+  // Format currency display
+  const formatCurrency = (amount, currency = displayCurrency) => {
+    const symbols = {
+      'USD': '$', 
+      'EUR': '€', 
+      'GBP': '£', 
+      'CAD': 'C$', 
+      'AUD': 'A$', 
+      'JPY': '¥'
+    };
+    const symbol = symbols[currency] || currency;
+    
+    if (!amount || amount === 0) return `${symbol}--`;
+    return `${symbol}${parseFloat(amount).toFixed(3)}`;
+  };
+
+  // Calculate ingredient cost for current percentage
+  const calculateIngredientCost = (ingredient, percentage, batchSize = 100) => {
+    if (!ingredient.cost_per_gram || !percentage) return null;
+    
+    const quantityNeeded = (percentage / 100) * batchSize; // grams needed
+    const totalCost = quantityNeeded * ingredient.cost_per_gram;
+    
+    return {
+      quantity_needed: quantityNeeded,
+      cost_per_gram: ingredient.cost_per_gram,
+      total_cost: totalCost,
+      currency: ingredient.currency || 'USD'
+    };
+  };
+
   // Drag and drop handlers
   const handleDragStart = (e, ingredient) => {
     setDraggedIngredient(ingredient);
@@ -185,120 +225,289 @@ const IngredientSelector = ({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {/* Ingredient search and filter panel */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-        <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
-          Available Ingredients
-        </h3>
-        
-        {/* Search and filters */}
-        <div className="space-y-3 mb-4">
-          {/* Search input */}
-          <div>
-            <label htmlFor="ingredient-search" className="sr-only">Search ingredients</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Ingredient search and filter panel */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+              Available Ingredients
+            </h3>
+            
+            {showCosts && (
+              <select
+                value={displayCurrency}
+                onChange={(e) => setDisplayCurrency(e.target.value)}
+                className="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="CAD">CAD (C$)</option>
+              </select>
+            )}
+          </div>
+          
+          {/* Search and filters */}
+          <div className="space-y-3 mb-4">
+            {/* Search input */}
+            <div>
+              <label htmlFor="ingredient-search" className="sr-only">Search ingredients</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+                <input
+                  type="search"
+                  id="ingredient-search"
+                  className="w-full pl-10 p-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  placeholder="Search ingredients..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
               </div>
-              <input
-                type="search"
-                id="ingredient-search"
-                className="w-full pl-10 p-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                placeholder="Search ingredients..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+            </div>
+            
+            {/* Filter row */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Phase filter */}
+              <div>
+                <label htmlFor="phase-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Phase
+                </label>
+                <select
+                  id="phase-filter"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  value={phaseFilter}
+                  onChange={(e) => setPhaseFilter(e.target.value)}
+                >
+                  <option value="">All Phases</option>
+                  {ingredientPhases.map((phase) => (
+                    <option key={phase} value={phase}>
+                      {phase}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Function filter */}
+              <div>
+                <label htmlFor="function-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Function
+                </label>
+                <select
+                  id="function-filter"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  value={functionFilter}
+                  onChange={(e) => setFunctionFilter(e.target.value)}
+                >
+                  <option value="">All Functions</option>
+                  {ingredientFunctions.map((func) => (
+                    <option key={func} value={func}>
+                      {func}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
           
-          {/* Filter row */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Phase filter */}
-            <div>
-              <label htmlFor="phase-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Phase
-              </label>
-              <select
-                id="phase-filter"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                value={phaseFilter}
-                onChange={(e) => setPhaseFilter(e.target.value)}
-              >
-                <option value="">All Phases</option>
-                {ingredientPhases.map((phase) => (
-                  <option key={phase} value={phase}>
-                    {phase}
-                  </option>
-                ))}
-              </select>
+          {/* Ingredient list */}
+          {isLoading.ingredients ? (
+            <div className="flex justify-center my-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
             </div>
-            
-            {/* Function filter */}
-            <div>
-              <label htmlFor="function-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Function
-              </label>
-              <select
-                id="function-filter"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                value={functionFilter}
-                onChange={(e) => setFunctionFilter(e.target.value)}
-              >
-                <option value="">All Functions</option>
-                {ingredientFunctions.map((func) => (
-                  <option key={func} value={func}>
-                    {func}
-                  </option>
-                ))}
-              </select>
+          ) : errors.ingredients ? (
+            <div className="p-4 bg-red-50 text-red-600 rounded-lg">
+              {errors.ingredients}
             </div>
-          </div>
+          ) : (
+            <div 
+              ref={scrollContainerRef}
+              className="mt-3 border border-gray-200 dark:border-gray-700 rounded-lg overflow-y-auto max-h-96"
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              {filteredIngredients.length === 0 ? (
+                <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                  No ingredients match your filters
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredIngredients.map((ingredient) => {
+                    const isSelected = isIngredientSelected(ingredient.id);
+                    return (
+                      <li 
+                        key={ingredient.id}
+                        className={`p-3 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors ${
+                          isSelected ? 'bg-violet-50 dark:bg-violet-900/20' : ''
+                        }`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, ingredient)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {ingredient.name}
+                            </h4>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {ingredient.inci_name}
+                            </p>
+                            
+                            {/* Cost information */}
+                            {showCosts && ingredient.cost_per_gram && (
+                              <div className="mt-1 text-xs text-green-600 dark:text-green-400">
+                                {formatCurrency(ingredient.cost_per_gram)}/g
+                                {ingredient.supplier_name && (
+                                  <span className="text-gray-500 ml-1">
+                                    • {ingredient.supplier_name}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {ingredient.phase && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                  {ingredient.phase}
+                                </span>
+                              )}
+                              {ingredient.function && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                  {ingredient.function}
+                                </span>
+                              )}
+                              {ingredient.recommended_max_percentage && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                  Max: {ingredient.recommended_max_percentage}%
+                                </span>
+                              )}
+                              {ingredient.is_premium && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200">
+                                  Premium
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center ml-2 space-x-1">
+                            {/* Cost edit button */}
+                            {showCosts && (
+                              <button
+                                onClick={() => {
+                                  setSelectedIngredientForCost(ingredient);
+                                  setShowCostModal(true);
+                                }}
+                                className="p-1.5 rounded-full bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-400"
+                                title="Update cost information"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                              </button>
+                            )}
+                            
+                            {/* Add/Remove button */}
+                            <button
+                              className={`p-1.5 rounded-full ${
+                                isSelected
+                                  ? 'bg-red-100 text-red-500 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-400'
+                                  : 'bg-violet-100 text-violet-600 hover:bg-violet-200 dark:bg-violet-900/50 dark:text-violet-400'
+                              }`}
+                              onClick={() => {
+                                if (isSelected) {
+                                  const selectedIngredient = currentFormula.ingredients.find(
+                                    ing => ing.ingredient_id === ingredient.id
+                                  );
+                                  if (selectedIngredient) {
+                                    removeIngredient(ingredient.id);
+                                  }
+                                } else {
+                                  handleAddIngredient(ingredient);
+                                }
+                              }}
+                              aria-label={isSelected ? 'Remove ingredient' : 'Add ingredient'}
+                            >
+                              {isSelected ? (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                              ) : (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
         
-        {/* Ingredient list */}
-        {isLoading.ingredients ? (
-          <div className="flex justify-center my-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
-          </div>
-        ) : errors.ingredients ? (
-          <div className="p-4 bg-red-50 text-red-600 rounded-lg">
-            {errors.ingredients}
-          </div>
-        ) : (
-          <div 
-            ref={scrollContainerRef}
-            className="mt-3 border border-gray-200 dark:border-gray-700 rounded-lg overflow-y-auto max-h-96"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            {filteredIngredients.length === 0 ? (
-              <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                No ingredients match your filters
+        {/* Selected ingredients panel */}
+        {showSelected && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                Selected Ingredients
+              </h3>
+              <div className={`text-sm font-medium ${
+                Math.abs(totalPercentage - 100) < 0.1
+                  ? 'text-green-600 dark:text-green-400'
+                  : totalPercentage > 100
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-yellow-600 dark:text-yellow-400'
+              }`}>
+                Total: {totalPercentage.toFixed(1)}%
+              </div>
+            </div>
+            
+            {currentFormula.ingredients.length === 0 ? (
+              <div className="p-6 text-center border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                <p className="text-gray-500 dark:text-gray-400">
+                  No ingredients selected yet. Drag ingredients here or click the + button to add them.
+                </p>
               </div>
             ) : (
-              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredIngredients.map((ingredient) => {
-                  const isSelected = isIngredientSelected(ingredient.id);
+              <div className="space-y-2">
+                {currentFormula.ingredients.map((item) => {
+                  // Find the full ingredient details
+                  const ingredient = item.ingredient || availableIngredients.find(i => i.id === item.ingredient_id);
+                  if (!ingredient) return null;
+                  
+                  // Check for compatibility issues
+                  const issues = getCompatibilityIssues(ingredient.id);
+                  const hasIssues = issues.length > 0;
+                  
+                  // Calculate cost for this ingredient
+                  const costInfo = showCosts ? calculateIngredientCost(ingredient, item.percentage) : null;
+                  
                   return (
-                    <li 
-                      key={ingredient.id}
-                      className={`p-3 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors ${
-                        isSelected ? 'bg-violet-50 dark:bg-violet-900/20' : ''
-                      }`}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, ingredient)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
+                    <div key={item.ingredient_id} className="p-3 bg-gray-50 dark:bg-gray-750 rounded-lg">
+                      <div className="flex justify-between">
+                        <div className="flex-1">
                           <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {ingredient.name}
                           </h4>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             {ingredient.inci_name}
                           </p>
+                          
+                          {/* Cost calculation for selected ingredient */}
+                          {showCosts && costInfo && (
+                            <div className="mt-1 text-xs text-green-600 dark:text-green-400">
+                              {costInfo.quantity_needed.toFixed(2)}g needed • {formatCurrency(costInfo.total_cost, costInfo.currency)} total
+                            </div>
+                          )}
+                          
+                          {/* Ingredient metadata */}
                           <div className="mt-1 flex flex-wrap gap-1">
                             {ingredient.phase && (
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -310,199 +519,107 @@ const IngredientSelector = ({
                                 {ingredient.function}
                               </span>
                             )}
-                            {ingredient.recommended_max_percentage && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                Max: {ingredient.recommended_max_percentage}%
-                              </span>
-                            )}
-                            {ingredient.is_premium && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200">
-                                Premium
-                              </span>
-                            )}
                           </div>
-                        </div>
-                        <button
-                          className={`p-1.5 rounded-full ${
-                            isSelected
-                              ? 'bg-red-100 text-red-500 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-400'
-                              : 'bg-violet-100 text-violet-600 hover:bg-violet-200 dark:bg-violet-900/50 dark:text-violet-400'
-                          }`}
-                          onClick={() => {
-                            if (isSelected) {
-                              const selectedIngredient = currentFormula.ingredients.find(
-                                ing => ing.ingredient_id === ingredient.id
-                              );
-                              if (selectedIngredient) {
-                                removeIngredient(ingredient.id);
-                              }
-                            } else {
-                              handleAddIngredient(ingredient);
-                            }
-                          }}
-                          aria-label={isSelected ? 'Remove ingredient' : 'Add ingredient'}
-                        >
-                          {isSelected ? (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                          ) : (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
+                          
+                          {/* Compatibility warnings */}
+                          {hasIssues && (
+                            <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-md">
+                              <div className="flex">
+                                <svg className="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div className="ml-2">
+                                  <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                                    Compatibility issue with: {issues.map(issue => 
+                                      issue.ingredient1.id === ingredient.id 
+                                        ? issue.ingredient2.name 
+                                        : issue.ingredient1.name
+                                    ).join(', ')}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
                           )}
-                        </button>
+                        </div>
+                        
+                        {/* Percentage and actions */}
+                        <div className="flex items-start ml-2">
+                          {showPercentages && (
+                            <div className="relative mr-2">
+                              <input
+                                type="number"
+                                value={item.percentage}
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                onChange={(e) => handlePercentageChange(item.ingredient_id, e.target.value)}
+                                className="w-16 p-1 text-sm border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                aria-label="Ingredient percentage"
+                              />
+                              <span className="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none text-gray-500 dark:text-gray-400">
+                                %
+                              </span>
+                            </div>
+                          )}
+                          
+                          {/* Remove button */}
+                          <button
+                            onClick={() => removeIngredient(item.ingredient_id)}
+                            className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full"
+                            aria-label="Remove ingredient"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                          </button>
+                        </div>
                       </div>
-                    </li>
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
+            )}
+            
+            {/* Total percentage warning */}
+            {currentFormula.ingredients.length > 0 && Math.abs(totalPercentage - 100) > 0.1 && (
+              <div className={`mt-3 p-2 rounded-md text-sm ${
+                totalPercentage > 100
+                  ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                  : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+              }`}>
+                {totalPercentage > 100
+                  ? `Total percentage exceeds 100% by ${(totalPercentage - 100).toFixed(1)}%. Please adjust your formulation.`
+                  : `Total percentage is ${totalPercentage.toFixed(1)}%, which is ${(100 - totalPercentage).toFixed(1)}% short of 100%. Please add more ingredients or adjust percentages.`
+                }
+              </div>
             )}
           </div>
         )}
       </div>
-      
-      {/* Selected ingredients panel */}
-      {showSelected && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-              Selected Ingredients
-            </h3>
-            <div className={`text-sm font-medium ${
-              Math.abs(totalPercentage - 100) < 0.1
-                ? 'text-green-600 dark:text-green-400'
-                : totalPercentage > 100
-                  ? 'text-red-600 dark:text-red-400'
-                  : 'text-yellow-600 dark:text-yellow-400'
-            }`}>
-              Total: {totalPercentage.toFixed(1)}%
-            </div>
+
+      {/* Cost Input Modal */}
+      {showCostModal && selectedIngredientForCost && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+            <CostInput
+              ingredient={selectedIngredientForCost}
+              onCostUpdate={handleCostUpdate}
+              onClose={() => {
+                setShowCostModal(false);
+                setSelectedIngredientForCost(null);
+              }}
+            />
           </div>
-          
-          {currentFormula.ingredients.length === 0 ? (
-            <div className="p-6 text-center border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-              <p className="text-gray-500 dark:text-gray-400">
-                No ingredients selected yet. Drag ingredients here or click the + button to add them.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {currentFormula.ingredients.map((item) => {
-                // Find the full ingredient details
-                const ingredient = item.ingredient || availableIngredients.find(i => i.id === item.ingredient_id);
-                if (!ingredient) return null;
-                
-                // Check for compatibility issues
-                const issues = getCompatibilityIssues(ingredient.id);
-                const hasIssues = issues.length > 0;
-                
-                return (
-                  <div key={item.ingredient_id} className="p-3 bg-gray-50 dark:bg-gray-750 rounded-lg">
-                    <div className="flex justify-between">
-                      <div className="flex-1">
-                        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {ingredient.name}
-                        </h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {ingredient.inci_name}
-                        </p>
-                        
-                        {/* Ingredient metadata */}
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {ingredient.phase && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                              {ingredient.phase}
-                            </span>
-                          )}
-                          {ingredient.function && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                              {ingredient.function}
-                            </span>
-                          )}
-                        </div>
-                        
-                        {/* Compatibility warnings */}
-                        {hasIssues && (
-                          <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-md">
-                            <div className="flex">
-                              <svg className="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                              </svg>
-                              <div className="ml-2">
-                                <p className="text-xs text-yellow-700 dark:text-yellow-300">
-                                  Compatibility issue with: {issues.map(issue => 
-                                    issue.ingredient1.id === ingredient.id 
-                                      ? issue.ingredient2.name 
-                                      : issue.ingredient1.name
-                                  ).join(', ')}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Percentage and actions */}
-                      <div className="flex items-start ml-2">
-                        {showPercentages && (
-                          <div className="relative mr-2">
-                            <input
-                              type="number"
-                              value={item.percentage}
-                              min="0"
-                              max="100"
-                              step="0.1"
-                              onChange={(e) => handlePercentageChange(item.ingredient_id, e.target.value)}
-                              className="w-16 p-1 text-sm border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                              aria-label="Ingredient percentage"
-                            />
-                            <span className="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none text-gray-500 dark:text-gray-400">
-                              %
-                            </span>
-                          </div>
-                        )}
-                        
-                        {/* Remove button */}
-                        <button
-                          onClick={() => removeIngredient(item.ingredient_id)}
-                          className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full"
-                          aria-label="Remove ingredient"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          
-          {/* Total percentage warning */}
-          {currentFormula.ingredients.length > 0 && Math.abs(totalPercentage - 100) > 0.1 && (
-            <div className={`mt-3 p-2 rounded-md text-sm ${
-              totalPercentage > 100
-                ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
-            }`}>
-              {totalPercentage > 100
-                ? `Total percentage exceeds 100% by ${(totalPercentage - 100).toFixed(1)}%. Please adjust your formulation.`
-                : `Total percentage is ${totalPercentage.toFixed(1)}%, which is ${(100 - totalPercentage).toFixed(1)}% short of 100%. Please add more ingredients or adjust percentages.`
-              }
-            </div>
-          )}
         </div>
       )}
-    </div>
+    </>
   );
 };
 
 IngredientSelector.propTypes = {
   showSelected: PropTypes.bool,
   showPercentages: PropTypes.bool,
+  showCosts: PropTypes.bool,
   onIngredientAdded: PropTypes.func
 };
 
