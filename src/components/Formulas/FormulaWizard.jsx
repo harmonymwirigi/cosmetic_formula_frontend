@@ -99,7 +99,7 @@ const FormulaWizard = () => {
 
   const isStepValid = () => {
     switch (currentStep) {
-      case 0: return formData.productCategory !== '';
+      case 0: return formData.productCategory !== '' && formData.formulaType.length > 0;
       case 1: return formData.primaryGoals.length > 0;
       case 2: return true; // Optional step
       case 3: return formData.desiredExperience.length > 0;
@@ -204,17 +204,22 @@ const FormulaWizard = () => {
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
-        return (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-                What are you creating?
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Choose your product type to get started
-              </p>
-            </div>
-            
+      return (
+        <div className="space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+              What are you creating?
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
+              First choose your category, then select the specific product type
+            </p>
+          </div>
+          
+          {/* Step 1: Category Selection */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 text-center">
+              Choose Product Category
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 { value: 'face_care', label: 'Face Care', icon: '😊', desc: 'Serums, creams, cleansers' },
@@ -223,7 +228,11 @@ const FormulaWizard = () => {
               ].map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => updateFormData('productCategory', option.value)}
+                  onClick={() => {
+                    updateFormData('productCategory', option.value);
+                    // Reset formula type when category changes
+                    setFormData(prev => ({ ...prev, formulaType: [] }));
+                  }}
                   className={`p-8 rounded-2xl border-2 transition-all duration-200 text-center hover:shadow-lg ${
                     formData.productCategory === option.value
                       ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-lg'
@@ -241,7 +250,148 @@ const FormulaWizard = () => {
               ))}
             </div>
           </div>
-        );
+
+          {/* Step 2: Specific Product Type Selection */}
+          {formData.productCategory && (
+            <div className="space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 text-center">
+                Choose Specific Product Type
+              </h3>
+              
+              {/* Face Care Products */}
+              {formData.productCategory === 'face_care' && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { value: 'serum', label: 'Serum', icon: '💧', desc: 'Concentrated treatment' },
+                    { value: 'moisturizer', label: 'Moisturizer', icon: '🥛', desc: 'Daily hydration' },
+                    { value: 'cleanser', label: 'Cleanser', icon: '🧼', desc: 'Face wash' },
+                    { value: 'toner', label: 'Toner', icon: '✨', desc: 'Balancing mist' },
+                    { value: 'mask', label: 'Face Mask', icon: '🎭', desc: 'Weekly treatment' },
+                    { value: 'essence', label: 'Essence', icon: '🌟', desc: 'Light treatment' },
+                    { value: 'eye_cream', label: 'Eye Cream', icon: '👁️', desc: 'Delicate care' },
+                    { value: 'sunscreen', label: 'Sunscreen', icon: '☀️', desc: 'UV protection' }
+                  ].map((product) => (
+                    <button
+                      key={product.value}
+                      onClick={() => toggleArrayValue('formulaType', product.value)}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-center relative ${
+                        formData.formulaType.includes(product.value)
+                          ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-lg'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-violet-300 hover:shadow-md'
+                      }`}
+                    >
+                      <div className="text-2xl mb-2">{product.icon}</div>
+                      <div className="font-medium text-gray-900 dark:text-white text-sm mb-1">
+                        {product.label}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {product.desc}
+                      </div>
+                      {formData.formulaType.includes(product.value) && (
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Hair Care Products */}
+              {formData.productCategory === 'hair_care' && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { value: 'shampoo', label: 'Shampoo', icon: '🧴', desc: 'Cleansing base' },
+                    { value: 'conditioner', label: 'Conditioner', icon: '💆‍♀️', desc: 'Daily care' },
+                    { value: 'hair_mask', label: 'Hair Mask', icon: '🎭', desc: 'Deep treatment' },
+                    { value: 'hair_oil', label: 'Hair Oil', icon: '🌿', desc: 'Nourishing treatment' },
+                    { value: 'leave_in', label: 'Leave-in', icon: '✨', desc: 'Styling treatment' },
+                    { value: 'styling_cream', label: 'Styling Cream', icon: '💇‍♂️', desc: 'Hold & style' },
+                    { value: 'scalp_treatment', label: 'Scalp Treatment', icon: '🌱', desc: 'Scalp care' },
+                    { value: 'dry_shampoo', label: 'Dry Shampoo', icon: '💨', desc: 'Refresh & volume' }
+                  ].map((product) => (
+                    <button
+                      key={product.value}
+                      onClick={() => toggleArrayValue('formulaType', product.value)}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-center relative ${
+                        formData.formulaType.includes(product.value)
+                          ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-lg'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-violet-300 hover:shadow-md'
+                      }`}
+                    >
+                      <div className="text-2xl mb-2">{product.icon}</div>
+                      <div className="font-medium text-gray-900 dark:text-white text-sm mb-1">
+                        {product.label}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {product.desc}
+                      </div>
+                      {formData.formulaType.includes(product.value) && (
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Body Care Products */}
+              {formData.productCategory === 'body_care' && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { value: 'body_lotion', label: 'Body Lotion', icon: '🧴', desc: 'Daily moisture' },
+                    { value: 'body_cream', label: 'Body Cream', icon: '🥛', desc: 'Rich hydration' },
+                    { value: 'body_oil', label: 'Body Oil', icon: '🌿', desc: 'Nourishing oil' },
+                    { value: 'body_scrub', label: 'Body Scrub', icon: '✨', desc: 'Exfoliation' },
+                    { value: 'body_wash', label: 'Body Wash', icon: '🧼', desc: 'Gentle cleansing' },
+                    { value: 'deodorant', label: 'Deodorant', icon: '🌸', desc: 'Fresh protection' },
+                    { value: 'hand_cream', label: 'Hand Cream', icon: '🤲', desc: 'Hand care' },
+                    { value: 'lip_balm', label: 'Lip Balm', icon: '💋', desc: 'Lip protection' }
+                  ].map((product) => (
+                    <button
+                      key={product.value}
+                      onClick={() => toggleArrayValue('formulaType', product.value)}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-center relative ${
+                        formData.formulaType.includes(product.value)
+                          ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-lg'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-violet-300 hover:shadow-md'
+                      }`}
+                    >
+                      <div className="text-2xl mb-2">{product.icon}</div>
+                      <div className="font-medium text-gray-900 dark:text-white text-sm mb-1">
+                        {product.label}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {product.desc}
+                      </div>
+                      {formData.formulaType.includes(product.value) && (
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {formData.formulaType.length > 0 && (
+                <div className="text-center">
+                  <span className="text-sm text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30 px-4 py-2 rounded-full">
+                    Selected: {formData.formulaType.join(', ')}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
 
       case 1:
         return (

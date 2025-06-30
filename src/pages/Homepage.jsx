@@ -1,4 +1,4 @@
-// frontend/src/pages/Homepage.jsx - Updated with Exact Color Palette
+// frontend/src/pages/Homepage.jsx - Updated with Dashboard Color Palette
 import React, { useState, useEffect } from 'react';
 import { 
   ChevronLeft, 
@@ -260,29 +260,29 @@ const Homepage = () => {
   const roi = calculateROI();
 
   return (
-    <div className="min-h-screen bg-[#f9f1e1]">
+    <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="bg-[#f9f1e1] border-b border-[#f5e3c1] sticky top-0 z-50">
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center">
-                <div className="w-8 h-8 bg-[#9b3b10] rounded-full flex items-center justify-center mr-3">
-                  <span className="text-[#f9f1e1] font-bold text-lg">B</span>
+                <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-lg">B</span>
                 </div>
-                <span className="text-xl font-bold text-[#5a2e1d]">Beauty Craft HQ</span>
+                <span className="text-xl font-bold text-gray-900">Beauty Craft HQ</span>
               </div>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">
-                <a href="#features" className="text-[#5a2e1d] hover:text-[#9b3b10] px-3 py-2 rounded-md text-sm font-medium">Features</a>
-                <a href="#pricing" className="text-[#5a2e1d] hover:text-[#9b3b10] px-3 py-2 rounded-md text-sm font-medium">Pricing</a>
-                <a href="#demo" className="text-[#5a2e1d] hover:text-[#9b3b10] px-3 py-2 rounded-md text-sm font-medium">Demo</a>
-                <Link to="/signin" className="text-[#5a2e1d] hover:text-[#9b3b10] px-3 py-2 rounded-md text-sm font-medium">Sign In</Link>
-                <Link to="/signup" className="bg-[#9b3b10] text-[#f9f1e1] px-4 py-2 rounded-md text-sm font-medium hover:bg-[#84310e]">Get Started</Link>
+                <a href="#features" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Features</a>
+                <a href="#pricing" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Pricing</a>
+                <a href="#demo" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Demo</a>
+                <Link to="/signin" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Sign In</Link>
+                <Link to="/signup" className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700">Get Started</Link>
               </div>
             </div>
 
@@ -290,7 +290,7 @@ const Homepage = () => {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-[#5a2e1d] hover:text-[#9b3b10] hover:bg-[#f5e3c1] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#9b3b10] p-2 rounded-md"
+                className="text-gray-700 hover:text-indigo-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-600 p-2 rounded-md"
               >
                 {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
@@ -300,12 +300,12 @@ const Homepage = () => {
           {/* Mobile Navigation */}
           {isMenuOpen && (
             <div className="md:hidden">
-              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-[#f5e3c1]">
-                <a href="#features" className="text-[#5a2e1d] hover:text-[#9b3b10] block px-3 py-2 rounded-md text-base font-medium">Features</a>
-                <a href="#pricing" className="text-[#5a2e1d] hover:text-[#9b3b10] block px-3 py-2 rounded-md text-base font-medium">Pricing</a>
-                <a href="#demo" className="text-[#5a2e1d] hover:text-[#9b3b10] block px-3 py-2 rounded-md text-base font-medium">Demo</a>
-                <Link to="/signin" className="text-[#5a2e1d] hover:text-[#9b3b10] block px-3 py-2 rounded-md text-base font-medium">Sign In</Link>
-                <Link to="/signup" className="bg-[#9b3b10] text-[#f9f1e1] block px-3 py-2 rounded-md text-base font-medium hover:bg-[#84310e]">Get Started</Link>
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
+                <a href="#features" className="text-gray-700 hover:text-indigo-600 block px-3 py-2 rounded-md text-base font-medium">Features</a>
+                <a href="#pricing" className="text-gray-700 hover:text-indigo-600 block px-3 py-2 rounded-md text-base font-medium">Pricing</a>
+                <a href="#demo" className="text-gray-700 hover:text-indigo-600 block px-3 py-2 rounded-md text-base font-medium">Demo</a>
+                <Link to="/signin" className="text-gray-700 hover:text-indigo-600 block px-3 py-2 rounded-md text-base font-medium">Sign In</Link>
+                <Link to="/signup" className="bg-indigo-600 text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-700">Get Started</Link>
               </div>
             </div>
           )}
@@ -313,40 +313,40 @@ const Homepage = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-[#f9f1e1]">
+      <section className="bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
-            <div className="inline-flex items-center bg-[#fef3c7] rounded-full px-4 py-2 mb-6">
-              <Zap className="h-4 w-4 text-[#f59e0b] mr-2" />
-              <span className="text-sm text-[#92400e]">Join 1,000+ formulators saving 6+ hours per formula</span>
+            <div className="inline-flex items-center bg-yellow-50 rounded-full px-4 py-2 mb-6">
+              <Zap className="h-4 w-4 text-yellow-500 mr-2" />
+              <span className="text-sm text-yellow-700">Join 1,000+ formulators saving 6+ hours per formula</span>
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-bold text-[#5a2e1d] mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               Formulate skincare
-              <span className="block text-[#5a2e1d]">like a pro — in minutes</span>
+              <span className="block text-gray-900">like a pro — in minutes</span>
             </h1>
-            <p className="text-xl text-[#5a2e1d] opacity-80 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Professional formulation software for creators and brands. No spreadsheets. Zero guesswork.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-              <Link to="/signup" className="bg-[#9b3b10] text-[#f9f1e1] px-8 py-4 rounded-lg text-lg font-semibold hover:bg-[#84310e] transition-colors inline-flex items-center justify-center">
+              <Link to="/signup" className="bg-indigo-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition-colors inline-flex items-center justify-center">
                 Start Formulating →
               </Link>
-              <button className="border border-[#9b3b10] text-[#9b3b10] px-8 py-4 rounded-lg text-lg font-semibold hover:bg-[#fcf5e5] transition-colors">
+              <button className="border border-indigo-600 text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-indigo-50 transition-colors">
                 See It In Action
               </button>
             </div>
             
-            <p className="text-sm text-[#5a2e1d] opacity-60">Free forever • No credit card required</p>
+            <p className="text-sm text-gray-500">Free forever • No credit card required</p>
 
             {/* Live Activity */}
-            <div className="mt-8 flex items-center justify-center space-x-4 text-sm text-[#5a2e1d] opacity-70">
+            <div className="mt-8 flex items-center justify-center space-x-4 text-sm text-gray-500">
               <div className="flex items-center">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
                 <span>3 formulators joined today</span>
               </div>
-              <div className="w-1 h-4 bg-[#f5e3c1]"></div>
+              <div className="w-1 h-4 bg-gray-300"></div>
               <div className="flex items-center">
                 <Users className="h-4 w-4 mr-1" />
                 <span>127 formulas created this week</span>
@@ -357,27 +357,27 @@ const Homepage = () => {
       </section>
 
       {/* Social Proof Stats */}
-      <section className="py-12 bg-[#fcf5e5]">
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="flex justify-center text-[#9b3b10] mb-2">
+                <div className="flex justify-center text-indigo-600 mb-2">
                   {stat.icon}
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-[#5a2e1d]">{stat.number}</div>
-                <div className="text-sm text-[#5a2e1d] opacity-70">{stat.label}</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{stat.number}</div>
+                <div className="text-sm text-gray-500">{stat.label}</div>
               </div>
             ))}
           </div>
 
           {/* Customer Logos */}
           <div className="text-center mt-12">
-            <p className="text-[#5a2e1d] opacity-70 mb-6">Trusted by beauty brands worldwide</p>
+            <p className="text-gray-500 mb-6">Trusted by beauty brands worldwide</p>
             <div className="flex justify-center items-center space-x-8 opacity-60">
               {customerLogos.map((customer, index) => (
-                <div key={index} className="h-8 w-24 bg-[#f5e3c1] rounded flex items-center justify-center">
-                  <span className="text-xs text-[#9b3b10] font-medium">{customer.name}</span>
+                <div key={index} className="h-8 w-24 bg-gray-100 rounded flex items-center justify-center">
+                  <span className="text-xs text-indigo-600 font-medium">{customer.name}</span>
                 </div>
               ))}
             </div>
@@ -386,48 +386,48 @@ const Homepage = () => {
       </section>
 
       {/* Problem/Solution */}
-      <section className="py-16 bg-[#f9f1e1]">
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-0 items-stretch">
-            <div className="bg-[#f9f1e1] border-r border-[#f5e3c1] p-8">
-              <h2 className="text-2xl font-bold text-[#5a2e1d] mb-4">Before: Chaos & Guesswork</h2>
-              <ul className="space-y-3 text-[#5a2e1d]">
+            <div className="bg-gray-50 border-r border-gray-200 p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Before: Chaos & Guesswork</h2>
+              <ul className="space-y-3 text-gray-700">
                 <li className="flex items-center">
-                  <X className="h-5 w-5 text-[#9b3b10] mr-3 flex-shrink-0" />
+                  <X className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
                   Hours wasted fixing calculation errors
                 </li>
                 <li className="flex items-center">
-                  <X className="h-5 w-5 text-[#9b3b10] mr-3 flex-shrink-0" />
+                  <X className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
                   Regulatory paperwork piled up
                 </li>
                 <li className="flex items-center">
-                  <X className="h-5 w-5 text-[#9b3b10] mr-3 flex-shrink-0" />
+                  <X className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
                   Inconsistent formula records
                 </li>
                 <li className="flex items-center">
-                  <X className="h-5 w-5 text-[#9b3b10] mr-3 flex-shrink-0" />
+                  <X className="h-5 w-5 text-red-500 mr-3 flex-shrink-0" />
                   Manual cost calculations and profit guessing
                 </li>
               </ul>
             </div>
             
-            <div className="bg-[#4a614e] p-8">
-              <h2 className="text-2xl font-bold text-[#f9f1e1] mb-4">After: Professional & Effortless</h2>
-              <ul className="space-y-3 text-[#f9f1e1]">
+            <div className="bg-indigo-600 p-8">
+              <h2 className="text-2xl font-bold text-white mb-4">After: Professional & Effortless</h2>
+              <ul className="space-y-3 text-white">
                 <li className="flex items-center">
-                  <Check className="h-5 w-5 text-[#f9f1e1] mr-3 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-white mr-3 flex-shrink-0" />
                   Drag-and-drop formula builder with auto-calculations
                 </li>
                 <li className="flex items-center">
-                  <Check className="h-5 w-5 text-[#f9f1e1] mr-3 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-white mr-3 flex-shrink-0" />
                   Instant INCI lists and safety documentation
                 </li>
                 <li className="flex items-center">
-                  <Check className="h-5 w-5 text-[#f9f1e1] mr-3 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-white mr-3 flex-shrink-0" />
                   Professional reports ready for compliance
                 </li>
                 <li className="flex items-center">
-                  <Check className="h-5 w-5 text-[#f9f1e1] mr-3 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-white mr-3 flex-shrink-0" />
                   Real-time cost tracking and profit optimization
                 </li>
               </ul>
@@ -437,28 +437,28 @@ const Homepage = () => {
       </section>
 
       {/* Interactive Demo */}
-      <section id="demo" className="py-20 bg-[#91451f]">
+      <section id="demo" className="py-20 bg-indigo-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 text-white">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               See how it works in 3 simple steps
             </h2>
-            <p className="text-xl text-[#f5e3c1]">
+            <p className="text-xl text-indigo-100">
               From concept to compliant formula in minutes, not hours
             </p>
           </div>
 
           {/* Demo Navigation */}
           <div className="flex justify-center mb-8">
-            <div className="bg-[#fcf5e5] rounded-lg p-2 flex space-x-2">
+            <div className="bg-white rounded-lg p-2 flex space-x-2">
               {Object.entries(demoSteps).map(([key, demo]) => (
                 <button
                   key={key}
                   onClick={() => setActiveDemo(key)}
                   className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     activeDemo === key
-                      ? 'bg-[#9b3b10] text-[#f9f1e1]'
-                      : 'text-[#9b3b10] hover:text-[#84310e]'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-indigo-600 hover:text-indigo-700'
                   }`}
                 >
                   {demo.icon}
@@ -472,15 +472,15 @@ const Homepage = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Demo Video/Image */}
             <div className="relative">
-              <div className="bg-[#5a2e1d] rounded-xl p-8 text-center">
-                <div className="bg-[#fcf5e5] rounded-lg h-64 flex items-center justify-center mb-4">
-                  <div className="text-[#9b3b10]">
+              <div className="bg-gray-800 rounded-xl p-8 text-center">
+                <div className="bg-white rounded-lg h-64 flex items-center justify-center mb-4">
+                  <div className="text-indigo-600">
                     <Eye className="h-16 w-16 mx-auto mb-4" />
                     <p className="text-lg font-semibold">Interactive Demo</p>
                     <p className="text-sm">Watch {demoSteps[activeDemo].title}</p>
                   </div>
                 </div>
-                <button className="bg-[#9b3b10] hover:bg-[#84310e] text-[#f9f1e1] px-6 py-3 rounded-lg font-semibold flex items-center mx-auto">
+                <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center mx-auto">
                   <Play className="h-5 w-5 mr-2" />
                   Watch Demo
                 </button>
@@ -490,7 +490,7 @@ const Homepage = () => {
             {/* Demo Description */}
             <div className="text-white">
               <div className="flex items-center mb-4">
-                <div className="text-[#f5e3c1] mr-3">
+                <div className="text-indigo-200 mr-3">
                   {demoSteps[activeDemo].icon}
                 </div>
                 <h3 className="text-2xl font-bold">
@@ -498,23 +498,23 @@ const Homepage = () => {
                 </h3>
               </div>
               
-              <p className="text-lg text-[#f5e3c1] mb-6">
+              <p className="text-lg text-indigo-100 mb-6">
                 {demoSteps[activeDemo].description}
               </p>
 
               <div className="space-y-3">
                 {demoSteps[activeDemo].steps.map((step, index) => (
                   <div key={index} className="flex items-center">
-                    <div className="bg-[#9b3b10] text-[#f9f1e1] rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">
+                    <div className="bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">
                       {index + 1}
                     </div>
-                    <span className="text-[#f5e3c1]">{step}</span>
+                    <span className="text-indigo-100">{step}</span>
                   </div>
                 ))}
               </div>
 
               <div className="mt-8">
-                <Link to="/signup" className="bg-[#9b3b10] hover:bg-[#84310e] text-[#f9f1e1] px-6 py-3 rounded-lg font-semibold inline-block">
+                <Link to="/signup" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold inline-block">
                   Try It Free
                 </Link>
               </div>
@@ -523,34 +523,34 @@ const Homepage = () => {
 
           {/* Quick Stats */}
           <div className="mt-16 text-center">
-            <div className="inline-flex items-center bg-[#fcf5e5] rounded-full px-6 py-3">
-              <span className="text-[#5a2e1d] font-semibold mr-2">⚡ Average time saved:</span>
-              <span className="text-[#9b3b10] font-bold">6 hours per formula</span>
+            <div className="inline-flex items-center bg-white rounded-full px-6 py-3">
+              <span className="text-gray-700 font-semibold mr-2">⚡ Average time saved:</span>
+              <span className="text-indigo-600 font-bold">6 hours per formula</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-[#9b3b10]">
+      <section id="features" className="py-20 bg-indigo-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#f9f1e1] mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Everything you need to formulate like a pro
             </h2>
-            <p className="text-xl text-[#f5e3c1] max-w-2xl mx-auto">
+            <p className="text-xl text-indigo-100 max-w-2xl mx-auto">
               Designed by cosmetic chemists for creators of all levels
             </p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="bg-[#fcf5e5] text-[#5a2e1d] p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="text-[#9b3b10] mb-4">
+              <div key={index} className="bg-white text-gray-700 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                <div className="text-indigo-600 mb-4">
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-[#5a2e1d] opacity-80">{feature.description}</p>
+                <p className="text-gray-600">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -558,15 +558,15 @@ const Homepage = () => {
       </section>
 
       {/* ROI Calculator & Pricing */}
-      <section id="pricing" className="py-20 bg-[#9b3b10]">
+      <section id="pricing" className="py-20 bg-indigo-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* ROI Calculator */}
-          <div className="bg-[#fcf5e5] rounded-xl p-8 mb-16">
+          <div className="bg-white rounded-xl p-8 mb-16">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-[#5a2e1d] mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Calculate Your Time & Cost Savings
               </h2>
-              <p className="text-[#5a2e1d] opacity-70">
+              <p className="text-gray-600">
                 See how much you could save by switching from spreadsheets
               </p>
             </div>
@@ -575,46 +575,46 @@ const Homepage = () => {
               {/* Input Section */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#5a2e1d] mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Formulas created per month
                   </label>
                   <input
                     type="number"
                     value={roiInputs.formulasPerMonth}
                     onChange={(e) => setRoiInputs({...roiInputs, formulasPerMonth: parseInt(e.target.value)})}
-                    className="w-full px-3 py-2 border border-[#f5e3c1] rounded-lg focus:ring-2 focus:ring-[#9b3b10] focus:border-[#9b3b10]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
               </div>
 
               {/* Results Section */}
-              <div className="bg-[#f5e3c1] rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-[#5a2e1d] mb-4">Your Potential Savings</h3>
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Potential Savings</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center text-[#5a2e1d] opacity-70">
+                    <span className="flex items-center text-gray-600">
                       <Clock className="h-4 w-4 mr-2" />
                       Time saved/month
                     </span>
-                    <span className="font-bold text-[#5a2e1d]">{roi.monthlyTimeSaved} hours</span>
+                    <span className="font-bold text-gray-900">{roi.monthlyTimeSaved} hours</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center text-[#5a2e1d] opacity-70">
+                    <span className="flex items-center text-gray-600">
                       <DollarSign className="h-4 w-4 mr-2" />
                       Cost savings/month
                     </span>
-                    <span className="font-bold text-[#5a2e1d]">${roi.monthlySavings.toLocaleString()}</span>
+                    <span className="font-bold text-gray-900">${roi.monthlySavings.toLocaleString()}</span>
                   </div>
-                  <div className="flex items-center justify-between border-t border-[#f5e3c1] pt-3">
-                    <span className="flex items-center text-[#5a2e1d] opacity-70">
+                  <div className="flex items-center justify-between border-t border-gray-200 pt-3">
+                    <span className="flex items-center text-gray-600">
                       <TrendingUp className="h-4 w-4 mr-2" />
                       Annual savings
                     </span>
-                    <span className="font-bold text-green-700 text-lg">${roi.annualSavings.toLocaleString()}</span>
+                    <span className="font-bold text-green-600 text-lg">${roi.annualSavings.toLocaleString()}</span>
                   </div>
                 </div>
                 <div className="mt-4 p-3 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-800">
+                  <p className="text-sm text-green-700">
                     💡 Professional plan pays for itself in just {Math.ceil(348 / roi.monthlySavings)} month{Math.ceil(348 / roi.monthlySavings) !== 1 ? 's' : ''}!
                   </p>
                 </div>
@@ -624,22 +624,22 @@ const Homepage = () => {
 
           {/* Pricing Cards */}
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#f9f1e1] mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Choose Your Plan
             </h2>
-            <p className="text-xl text-[#f5e3c1]">
+            <p className="text-xl text-indigo-100">
               Start free, upgrade when you're ready to scale
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {pricingPlans.map((plan, index) => (
-              <div key={index} className={`bg-[#fcf5e5] rounded-xl shadow-lg relative ${
-                plan.popular ? 'ring-2 ring-[#fbbf24] transform scale-105' : ''
+              <div key={index} className={`bg-white rounded-xl shadow-lg relative ${
+                plan.popular ? 'ring-2 ring-yellow-400 transform scale-105' : ''
               }`}>
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-[#fbbf24] text-[#5a2e1d] px-4 py-1 rounded-full text-sm font-bold">
+                    <span className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full text-sm font-bold">
                       Most Popular
                     </span>
                   </div>
@@ -647,14 +647,14 @@ const Homepage = () => {
                 
                 <div className="p-6">
                   <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold text-[#5a2e1d] mb-2">{plan.name}</h3>
-                    <p className="text-[#5a2e1d] opacity-70 text-sm mb-4">{plan.description}</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
                     
                     <div className="mb-4">
-                      <span className="text-4xl font-bold text-[#5a2e1d]">
+                      <span className="text-4xl font-bold text-gray-900">
                         ${plan.price.monthly}
                       </span>
-                      <span className="text-[#5a2e1d] opacity-70">/month</span>
+                      <span className="text-gray-600">/month</span>
                       {plan.price.yearly > 0 && (
                         <div className="text-sm text-green-600">
                           Save ${(plan.price.monthly * 12) - plan.price.yearly}/year with annual billing
@@ -662,15 +662,15 @@ const Homepage = () => {
                       )}
                     </div>
 
-                    <div className="text-xs text-[#5a2e1d] opacity-60 mb-4">
+                    <div className="text-xs text-gray-500 mb-4">
                       Best for: {plan.bestFor}
                     </div>
                   </div>
 
                   <ul className="space-y-2 mb-6">
                     {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start text-sm text-[#5a2e1d] opacity-80">
-                        <Check className="h-4 w-4 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
+                      <li key={featureIndex} className="flex items-start text-sm text-gray-700">
+                        <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
                         {feature}
                       </li>
                     ))}
@@ -678,10 +678,10 @@ const Homepage = () => {
 
                   {plan.limitations && (
                     <div className="mb-4">
-                      <p className="text-xs text-[#5a2e1d] opacity-60 mb-2">Limitations:</p>
+                      <p className="text-xs text-gray-500 mb-2">Limitations:</p>
                       <ul className="space-y-1">
                         {plan.limitations.map((limitation, idx) => (
-                          <li key={idx} className="text-xs text-[#5a2e1d] opacity-60">
+                          <li key={idx} className="text-xs text-gray-500">
                             • {limitation}
                           </li>
                         ))}
@@ -697,14 +697,14 @@ const Homepage = () => {
 
                   <button className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
                     plan.popular 
-                      ? 'bg-[#9b3b10] text-[#f9f1e1] hover:bg-[#84310e]' 
-                      : 'border border-[#9b3b10] text-[#9b3b10] hover:bg-[#f5e3c1]'
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
+                      : 'border border-indigo-600 text-indigo-600 hover:bg-indigo-50'
                   }`}>
                     {plan.cta}
                   </button>
 
                   {plan.name === "Professional" && (
-                    <p className="text-xs text-[#5a2e1d] opacity-60 text-center mt-2">
+                    <p className="text-xs text-gray-500 text-center mt-2">
                       14-day free trial • No credit card required
                     </p>
                   )}
@@ -716,34 +716,34 @@ const Homepage = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-[#fcf5e5]">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#5a2e1d] mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Loved by creators worldwide
             </h2>
-            <p className="text-xl text-[#5a2e1d] opacity-70">
+            <p className="text-xl text-gray-600">
               Join thousands of formulators creating amazing products
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-[#f5e3c1] p-6 rounded-xl border border-[#f5e3c1]">
+              <div key={index} className="bg-gray-50 p-6 rounded-xl border border-gray-200">
                 <div className="flex items-center mb-4">
                   <div className="text-2xl mr-3">{testimonial.avatar}</div>
                   <div>
-                    <h4 className="font-semibold text-[#5a2e1d]">{testimonial.name}</h4>
-                    <p className="text-[#5a2e1d] opacity-70 text-sm">{testimonial.role}</p>
-                    <p className="text-[#9b3b10] text-xs font-medium">{testimonial.company}</p>
+                    <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                    <p className="text-gray-600 text-sm">{testimonial.role}</p>
+                    <p className="text-indigo-600 text-xs font-medium">{testimonial.company}</p>
                   </div>
                 </div>
                 <div className="flex mb-3">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-yellow-500 fill-current" />
+                    <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
                   ))}
                 </div>
-                <p className="text-[#5a2e1d] opacity-80">"{testimonial.quote}"</p>
+                <p className="text-gray-700">"{testimonial.quote}"</p>
               </div>
             ))}
           </div>
@@ -751,13 +751,13 @@ const Homepage = () => {
       </section>
 
       {/* Security & Trust */}
-      <section className="py-16 bg-[#f5e3c1]">
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-[#5a2e1d] mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
               Enterprise-grade security you can trust
             </h2>
-            <p className="text-[#5a2e1d] opacity-70">
+            <p className="text-gray-600">
               Your formulations and data are protected with industry-leading security
             </p>
           </div>
@@ -765,11 +765,11 @@ const Homepage = () => {
           <div className="flex justify-center space-x-12">
             {certifications.map((cert, index) => (
               <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-[#9b3b10] rounded-full flex items-center justify-center mb-3 mx-auto">
-                  <Shield className="h-8 w-8 text-[#f9f1e1]" />
+                <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mb-3 mx-auto">
+                  <Shield className="h-8 w-8 text-white" />
                 </div>
-                <div className="text-sm font-semibold text-[#5a2e1d]">{cert.name}</div>
-                <div className="text-xs text-[#5a2e1d] opacity-70">{cert.description}</div>
+                <div className="text-sm font-semibold text-gray-900">{cert.name}</div>
+                <div className="text-xs text-gray-600">{cert.description}</div>
               </div>
             ))}
           </div>
@@ -777,7 +777,7 @@ const Homepage = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 bg-gradient-to-r from-[#9b3b10] to-[#84310e] text-[#f9f1e1]">
+      <section className="py-20 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to revolutionize your formulations?
@@ -787,11 +787,11 @@ const Homepage = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link to="/signup" className="bg-[#f9f1e1] text-[#9b3b10] px-8 py-4 rounded-lg text-lg font-semibold hover:bg-[#fcf5e5] transition-colors inline-flex items-center justify-center">
+            <Link to="/signup" className="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors inline-flex items-center justify-center">
               Start Free
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
-            <Link to="/signin" className="border border-[#f9f1e1] text-[#f9f1e1] px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition-colors">
+            <Link to="/signin" className="border border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition-colors">
               Sign In
             </Link>
           </div>
@@ -816,56 +816,56 @@ const Homepage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#5a2e1d] text-[#f5e3c1] py-12">
+      <footer className="bg-gray-800 text-gray-300 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center mb-4">
-                <div className="w-6 h-6 bg-[#9b3b10] rounded-full flex items-center justify-center mr-2">
-                  <span className="text-[#f9f1e1] font-bold text-sm">B</span>
+                <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center mr-2">
+                  <span className="text-white font-bold text-sm">B</span>
                 </div>
-                <span className="text-lg font-bold text-[#f9f1e1]">Beauty Craft HQ</span>
+                <span className="text-lg font-bold text-white">Beauty Craft HQ</span>
               </div>
               <p className="text-sm mb-4">
                 Professional cosmetic formulation tools for the modern creator.
               </p>
               <div className="flex space-x-4 text-sm">
-                <a href="mailto:support@beautycrafthq.com" className="hover:text-[#f9f1e1]">support@beautycrafthq.com</a>
+                <a href="mailto:support@beautycrafthq.com" className="hover:text-white">support@beautycrafthq.com</a>
               </div>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4 text-[#f9f1e1]">Product</h4>
+              <h4 className="font-semibold mb-4 text-white">Product</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#features" className="hover:text-[#f9f1e1]">Features</a></li>
-                <li><a href="#pricing" className="hover:text-[#f9f1e1]">Pricing</a></li>
-                <li><a href="#demo" className="hover:text-[#f9f1e1]">Demo</a></li>
-                <li><a href="/knowledge" className="hover:text-[#f9f1e1]">Knowledge Hub</a></li>
+                <li><a href="#features" className="hover:text-white">Features</a></li>
+                <li><a href="#pricing" className="hover:text-white">Pricing</a></li>
+                <li><a href="#demo" className="hover:text-white">Demo</a></li>
+                <li><a href="/knowledge" className="hover:text-white">Knowledge Hub</a></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4 text-[#f9f1e1]">Company</h4>
+              <h4 className="font-semibold mb-4 text-white">Company</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="/about" className="hover:text-[#f9f1e1]">About</a></li>
-                <li><a href="/contact" className="hover:text-[#f9f1e1]">Contact</a></li>
-                <li><a href="/careers" className="hover:text-[#f9f1e1]">Careers</a></li>
-                <li><a href="/blog" className="hover:text-[#f9f1e1]">Blog</a></li>
+                <li><a href="/about" className="hover:text-white">About</a></li>
+                <li><a href="/contact" className="hover:text-white">Contact</a></li>
+                <li><a href="/careers" className="hover:text-white">Careers</a></li>
+                <li><a href="/blog" className="hover:text-white">Blog</a></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4 text-[#f9f1e1]">Legal</h4>
+              <h4 className="font-semibold mb-4 text-white">Legal</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/privacy" className="hover:text-[#f9f1e1]">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="hover:text-[#f9f1e1]">Terms & Conditions</Link></li>
-                <li><a href="/security" className="hover:text-[#f9f1e1]">Security</a></li>
-                <li><a href="/compliance" className="hover:text-[#f9f1e1]">Compliance</a></li>
+                <li><Link to="/privacy" className="hover:text-white">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-white">Terms & Conditions</Link></li>
+                <li><a href="/security" className="hover:text-white">Security</a></li>
+                <li><a href="/compliance" className="hover:text-white">Compliance</a></li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-[#9b3b10] mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm">&copy; 2025 Beauty Craft HQ. All rights reserved.</p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <span className="text-xs">Made with ❤️ for formulators</span>
