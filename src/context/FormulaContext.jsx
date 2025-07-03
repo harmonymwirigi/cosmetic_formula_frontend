@@ -506,88 +506,107 @@ const generateAIFormula = async (formulaData) => {
   dispatch({ type: actionTypes.SET_ERROR, payload: { key: 'aiRecommendation', value: null } });
   
   try {
-    // Ensure we have a product type (required)
-    if (!formulaData.product_type) {
-      throw new Error('Product type is required');
-    }
+    // Check if this is questionnaire data (new format) or legacy data
+    const isQuestionnaireFormat = formulaData.product_category && formulaData.formula_types;
     
-    // Create a sanitized copy to avoid mutating the original data
-    const sanitizedData = { ...formulaData };
-    
-    // Define all fields that must be arrays
-    const arrayFields = [
-      'skin_concerns', 'sensitivities', 'preferred_textures', 
-      'preferred_product_types', 'lifestyle_factors', 'sales_channels',
-      'performance_goals', 'desired_certifications', 'preferred_ingredients',
-      'avoided_ingredients', 'hair_concerns', 'target_markets'
-    ];
-    
-    // Ensure these fields are arrays
-    arrayFields.forEach(field => {
-      if (sanitizedData[field] !== undefined) {
-        if (!Array.isArray(sanitizedData[field])) {
-          // If it's a string that looks like a JSON array, parse it
-          if (typeof sanitizedData[field] === 'string' && 
-              (sanitizedData[field].startsWith('[') && sanitizedData[field].endsWith(']'))) {
-            try {
-              sanitizedData[field] = JSON.parse(sanitizedData[field]);
-            } catch (e) {
-              console.warn(`Field ${field} looks like JSON but failed to parse:`, e);
-              sanitizedData[field] = [];
-            }
-          } else {
-            // Not an array and not a parseable string - use empty array
-            console.warn(`Field ${field} is not an array, using empty array instead of:`, sanitizedData[field]);
-            sanitizedData[field] = [];
-          }
-        }
-      } else {
-        // Field is missing - provide empty array
-        sanitizedData[field] = [];
-      }
-    });
-    
-    // Special handling for brand_info if it exists
-    if (sanitizedData.brand_info && typeof sanitizedData.brand_info === 'object') {
-      const brandFields = ['target_markets', 'sales_channels', 'performance_goals', 'desired_certifications'];
+    if (isQuestionnaireFormat) {
+      // Use new questionnaire endpoint
+      console.log('Using questionnaire format:', formulaData);
       
-      brandFields.forEach(field => {
-        if (sanitizedData.brand_info[field] !== undefined) {
-          if (!Array.isArray(sanitizedData.brand_info[field])) {
-            if (typeof sanitizedData.brand_info[field] === 'string' && 
-                sanitizedData.brand_info[field].startsWith('[') && 
-                sanitizedData.brand_info[field].endsWith(']')) {
+      const response = await aiFormulaAPI.generateFormulaFromQuestionnaire(formulaData);
+      
+      // Apply the AI-generated formula
+      dispatch({
+        type: actionTypes.APPLY_AI_RECOMMENDATION,
+        payload: response.data
+      });
+      
+      console.log('AI-generated formula:', response.data);
+      return response.data;
+    } else {
+      // Legacy format - ensure we have a product type (required)
+      if (!formulaData.product_type) {
+        throw new Error('Product type is required');
+      }
+      
+      // Create a sanitized copy to avoid mutating the original data
+      const sanitizedData = { ...formulaData };
+      
+      // Define all fields that must be arrays
+      const arrayFields = [
+        'skin_concerns', 'sensitivities', 'preferred_textures', 
+        'preferred_product_types', 'lifestyle_factors', 'sales_channels',
+        'performance_goals', 'desired_certifications', 'preferred_ingredients',
+        'avoided_ingredients', 'hair_concerns', 'target_markets'
+      ];
+      
+      // Ensure these fields are arrays
+      arrayFields.forEach(field => {
+        if (sanitizedData[field] !== undefined) {
+          if (!Array.isArray(sanitizedData[field])) {
+            // If it's a string that looks like a JSON array, parse it
+            if (typeof sanitizedData[field] === 'string' && 
+                (sanitizedData[field].startsWith('[') && sanitizedData[field].endsWith(']'))) {
               try {
-                sanitizedData.brand_info[field] = JSON.parse(sanitizedData.brand_info[field]);
+                sanitizedData[field] = JSON.parse(sanitizedData[field]);
               } catch (e) {
-                console.warn(`brand_info.${field} looks like JSON but failed to parse:`, e);
-                sanitizedData.brand_info[field] = [];
+                console.warn(`Field ${field} looks like JSON but failed to parse:`, e);
+                sanitizedData[field] = [];
               }
             } else {
-              sanitizedData.brand_info[field] = [];
+              // Not an array and not a parseable string - use empty array
+              console.warn(`Field ${field} is not an array, using empty array instead of:`, sanitizedData[field]);
+              sanitizedData[field] = [];
             }
           }
         } else {
-          sanitizedData.brand_info[field] = [];
+          // Field is missing - provide empty array
+          sanitizedData[field] = [];
         }
       });
+      
+      // Special handling for brand_info if it exists
+      if (sanitizedData.brand_info && typeof sanitizedData.brand_info === 'object') {
+        const brandFields = ['target_markets', 'sales_channels', 'performance_goals', 'desired_certifications'];
+        
+        brandFields.forEach(field => {
+          if (sanitizedData.brand_info[field] !== undefined) {
+            if (!Array.isArray(sanitizedData.brand_info[field])) {
+              if (typeof sanitizedData.brand_info[field] === 'string' && 
+                  sanitizedData.brand_info[field].startsWith('[') && 
+                  sanitizedData.brand_info[field].endsWith(']')) {
+                try {
+                  sanitizedData.brand_info[field] = JSON.parse(sanitizedData.brand_info[field]);
+                } catch (e) {
+                  console.warn(`brand_info.${field} looks like JSON but failed to parse:`, e);
+                  sanitizedData.brand_info[field] = [];
+                }
+              } else {
+                sanitizedData.brand_info[field] = [];
+              }
+            }
+          } else {
+            sanitizedData.brand_info[field] = [];
+          }
+        });
+      }
+      
+      console.log('Sending sanitized formula data to legacy API:', sanitizedData);
+      
+      // Send sanitized data to the legacy API
+      const response = await aiFormulaAPI.generateFormula(sanitizedData);
+      
+      // Apply the AI-generated formula
+      dispatch({
+        type: actionTypes.APPLY_AI_RECOMMENDATION,
+        payload: response.data
+      });
+      
+      console.log('AI-generated formula:', response.data);
+      
+      // Return the full response data so components can access the formula ID
+      return response.data;
     }
-    
-    console.log('Sending sanitized formula data to API:', sanitizedData);
-    
-    // Send sanitized data to the API
-    const response = await aiFormulaAPI.generateFormula(sanitizedData);
-    
-    // Apply the AI-generated formula
-    dispatch({
-      type: actionTypes.APPLY_AI_RECOMMENDATION,
-      payload: response.data
-    });
-    
-    console.log('AI-generated formula:', response.data);
-    
-    // Return the full response data so components can access the formula ID
-    return response.data;
   } catch (error) {
     console.error('Error generating AI formula:', error);
     
@@ -621,7 +640,7 @@ const generateAIFormula = async (formulaData) => {
     dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'aiRecommendation', value: false } });
   }
 };
-  const saveFormula = async () => {
+const saveFormula = async () => {
     dispatch({ type: actionTypes.SET_LOADING, payload: { key: 'formulaSaving', value: true } });
     dispatch({ type: actionTypes.SET_ERROR, payload: { key: 'formulaSaving', value: null } });
     
