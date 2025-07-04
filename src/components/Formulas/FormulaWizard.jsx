@@ -13,7 +13,7 @@ const FormulaWizard = () => {
   
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
-    purpose: '',
+    purpose: 'personal', // Set default since we removed the selection
     productCategory: '',
     formulaType: [],
     primaryGoals: [],
@@ -94,7 +94,7 @@ const FormulaWizard = () => {
       case 0: return formData.productCategory !== '' && formData.formulaType.length > 0;
       case 1: return formData.primaryGoals.length > 0;
       case 2: return formData.desiredExperience.length > 0;
-      case 3: return formData.purpose !== '';
+      case 3: return true; // No required fields in final step - all optional
       default: return true;
     }
   };
@@ -119,7 +119,7 @@ const FormulaWizard = () => {
 
     try {
       const questionnaireRequest = {
-        purpose: formData.purpose,
+        purpose: 'personal', // Default to personal since we removed the selection
         product_category: formData.productCategory,
         formula_types: formData.formulaType.length > 0 ? formData.formulaType : ['Serum'],
         primary_goals: formData.primaryGoals,
@@ -574,59 +574,12 @@ const FormulaWizard = () => {
                 Final Details
               </h2>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Tell us about your project
+                Tell us anything else about your formula
               </p>
             </div>
             
             <div className="max-w-2xl mx-auto space-y-6">
-              {/* Purpose Selection */}
-              <div>
-                <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Who is this for?
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { value: 'personal', label: 'Personal Use', icon: '🙋‍♀️', desc: 'Just for me or my family' },
-                    { value: 'brand', label: 'My Brand', icon: '🏢', desc: 'Commercial product to sell' }
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => updateFormData('purpose', option.value)}
-                      className={`p-6 rounded-xl border-2 transition-all duration-200 text-left hover:shadow-md ${
-                        formData.purpose === option.value
-                          ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-lg'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-violet-300'
-                      }`}
-                    >
-                      <div className="text-3xl mb-3">{option.icon}</div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                        {option.label}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {option.desc}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Brand Vision */}
-              {formData.purpose === 'brand' && (
-                <div className="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-6">
-                  <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                    🎯 Brand Vision (Optional)
-                  </label>
-                  <textarea
-                    value={formData.brandVision}
-                    onChange={(e) => updateFormData('brandVision', e.target.value)}
-                    rows={3}
-                    placeholder="Tell us about your brand concept, values, or target market..."
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:text-white resize-none"
-                  />
-                </div>
-              )}
-
-              {/* Simplified Additional Information - REPLACES multiple ingredient fields */}
+              {/* Simplified Additional Information - MAIN INPUT FIELD */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
                 <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
                   💬 Additional Information (Optional)
@@ -634,13 +587,15 @@ const FormulaWizard = () => {
                 <textarea
                   value={formData.additionalInformation}
                   onChange={(e) => updateFormData('additionalInformation', e.target.value)}
-                  rows={5}
+                  rows={6}
                   placeholder="Tell us anything else you'd like about your formula:
+
 • Specific ingredients you want (e.g., hyaluronic acid, shea butter)
 • Ingredients to avoid (e.g., sulfates, parabens)
 • Texture preferences (e.g., lightweight, rich, foaming)
 • Scent preferences (e.g., unscented, floral, fresh)
 • Special requirements (e.g., vegan, organic, sensitive skin)
+• Target market or brand vision
 • Packaging ideas
 • Budget considerations
 • Any other special requests..."
@@ -649,6 +604,19 @@ const FormulaWizard = () => {
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                   💡 The more details you provide, the better we can customize your formula
                 </p>
+              </div>
+
+              {/* Example suggestions */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                  <span className="text-blue-500 mr-2">💡</span>
+                  Need inspiration? Here are some examples:
+                </h3>
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <p><strong>Personal use:</strong> "Gentle cleanser for sensitive skin, no fragrances, prefer natural ingredients"</p>
+                  <p><strong>Brand project:</strong> "Luxury anti-aging serum targeting women 35+, premium packaging, $50 price point"</p>
+                  <p><strong>Pet care:</strong> "Hypoallergenic dog shampoo for golden retrievers, oatmeal-based, vet-recommended"</p>
+                </div>
               </div>
 
               {/* Summary */}
@@ -667,13 +635,7 @@ const FormulaWizard = () => {
                       {formData.formulaType.length > 0 ? formData.formulaType.join(', ') : 'Not selected'}
                     </span>
                   </div>
-                  <div>
-                    <strong className="text-gray-900 dark:text-white">Purpose:</strong>
-                    <span className="ml-2 text-gray-600 dark:text-gray-400">
-                      {formData.purpose ? formData.purpose.charAt(0).toUpperCase() + formData.purpose.slice(1) : 'Not selected'}
-                    </span>
-                  </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <strong className="text-gray-900 dark:text-white">Goals:</strong>
                     <span className="ml-2 text-gray-600 dark:text-gray-400">
                       {formData.primaryGoals.length > 0 ? formData.primaryGoals.join(', ') : 'None selected'}
